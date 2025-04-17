@@ -42,3 +42,4 @@ NextTrip provides personalized travel recommendations using a **collaborative fi
 
 ## 📁 Project Structure
 
+![צילום מסך 2025-04-17 043718](https://github.com/user-attachments/assets/c236e2bb-7232-4db7-9a2d-c522e41a7d31)
