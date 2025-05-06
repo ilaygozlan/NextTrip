@@ -1,0 +1,31 @@
+{
+  "name": "nexttrip-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for NextTrip travel recommendation system",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  },
+  "dependencies": {
+    "d3-geo": "^3.1.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "react-simple-maps": "^3.0.0",
+    "styled-components": "^6.1.1",
+    "topojson-client": "^3.1.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
