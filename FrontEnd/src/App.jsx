@@ -1,12 +1,13 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { createGlobalStyle } from 'styled-components';
-import styled from 'styled-components';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import MyTrips from './pages/MyTrips';
-import RateCountry from './pages/RateCountry';
-import CountryPage from './pages/CountryPage';
+import React, { useState } from "react";
+import { HashRouter as Router, Routes, Route, Navigate  } from "react-router-dom";
+import { createGlobalStyle } from "styled-components";
+import styled from "styled-components";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import MyTrips from "./pages/MyTrips";
+import RateCountry from "./pages/RateCountry";
+import CountryPage from "./pages/CountryPage";
+import LandingPage from "./pages/LandingPage";
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -40,16 +41,28 @@ const MainContent = styled.main`
 `;
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   return (
     <Router>
       <GlobalStyle />
       <Navbar />
       <MainContent>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/my-trips" element={<MyTrips />} />
-          <Route path="/rate-country" element={<RateCountry />} />
-          <Route path="/country/:countryName" element={<CountryPage />} />
+          {isAuthenticated ? (
+            <>
+              <Route path="/" element={<Home />} />
+              <Route path="/my-trips" element={<MyTrips />} />
+              <Route path="/rate-country" element={<RateCountry />} />
+              <Route path="/country/:countryName" element={<CountryPage />} />
+            </>
+          ) : (
+            <>
+              <Route path="/" element={<Navigate to="/LandingPage" />} />
+              <Route path="./Pages/LandingPage" element={<LandingPage />} />
+              <Route path="*" element={<Navigate to="/LandingPage" />} />
+            </>
+          )}
         </Routes>
       </MainContent>
     </Router>
