@@ -9,16 +9,21 @@ import LandingPage from "../pages/LandingPage";
 
 const AppRoutes = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const location = useLocation();
-
+  
   useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    const code = query.get("code");
-    console.log(code)
+    const url = window.location.href;
+    console.log("URL:", url);
+  
+    const queryString = window.location.search || window.location.hash.split('?')[1];
+    const queryParams = new URLSearchParams(queryString);
+    const code = queryParams.get("code");
+  
+    console.log("code:", code);
+  
     if (code) {
       setIsAuthenticated(true);
     }
-  }, [location]);
+  }, []);
 
   return (
     <>
