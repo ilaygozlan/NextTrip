@@ -1,13 +1,9 @@
-import React, { useState } from "react";
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import React from "react";
+import { HashRouter as Router } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import MyTrips from "./pages/MyTrips";
-import RateCountry from "./pages/RateCountry";
-import CountryPage from "./pages/CountryPage";
-import LandingPage from "./pages/LandingPage";
+import AppRoutes from "../src/components/AppRoutes"; // 👈 We'll create this next
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -41,45 +37,10 @@ const MainContent = styled.main`
 `;
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    function useQuery() {
-      const { search } = useLocation();
-      return new URLSearchParams(search);
-    }
-  
-    const query = useQuery();
-  
-    useEffect(() => {
-      const token = query.get("id_token");
-  
-      if (token) {
-        setIsAuthenticated(true);
-      }
-    }, [query]);
-
   return (
     <Router>
       <GlobalStyle />
-      {isAuthenticated && <Navbar />}
-      <MainContent>
-        <Routes>
-          {isAuthenticated ? (
-            <>
-              <Route path="/" element={<Home />} />
-              <Route path="/my-trips" element={<MyTrips />} />
-              <Route path="/rate-country" element={<RateCountry />} />
-              <Route path="/country/:countryName" element={<CountryPage />} />
-            </>
-          ) : (
-            <>
-              <Route path="/" element={<Navigate to="/LandingPage" />} />
-              <Route path="/LandingPage" element={<LandingPage />} />
-              <Route path="*" element={<Navigate to="/LandingPage" />} />
-            </>
-          )}
-        </Routes>
-      </MainContent>
+      <AppRoutes />
     </Router>
   );
 }
