@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import Login from "./Login";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -162,8 +163,8 @@ function LandingPage() {
       <Nav>
         <Logo>NextTrip</Logo>
         <NavButtons>
-          <Button to="/login" className="secondary">Log In</Button>
-          <Button to="/signup" className="primary">Sign Up</Button>
+          <Button onClick={()=>{Login()}} className="secondary">Log In</Button>
+          <Button onClick={()=>{Login()}} className="primary">Sign Up</Button>
         </NavButtons>
       </Nav>
 
@@ -173,7 +174,7 @@ function LandingPage() {
           Explore countries, share experiences, and connect with fellow travelers.
           Your journey begins here.
         </Subtitle>
-        <Button to="/signup" className="primary">Get Started</Button>
+        <Button onClick={()=>{Login()}} className="primary">Get Started</Button>
       </Hero>
 
       <Features>

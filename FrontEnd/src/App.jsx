@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { HashRouter as Router, Routes, Route, Navigate  } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
@@ -42,6 +42,21 @@ const MainContent = styled.main`
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    function useQuery() {
+      const { search } = useLocation();
+      return new URLSearchParams(search);
+    }
+  
+    const query = useQuery();
+  
+    useEffect(() => {
+      const token = query.get("id_token");
+  
+      if (token) {
+        setIsAuthenticated(true);
+      }
+    }, [query]);
 
   return (
     <Router>
