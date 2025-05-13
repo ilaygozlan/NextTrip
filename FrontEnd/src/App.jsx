@@ -46,7 +46,7 @@ function App() {
   return (
     <Router>
       <GlobalStyle />
-      <Navbar />
+      {isAuthenticated && <Navbar />}
       <MainContent>
         <Routes>
           {isAuthenticated ? (
@@ -59,7 +59,7 @@ function App() {
           ) : (
             <>
               <Route path="/" element={<Navigate to="/LandingPage" />} />
-              <Route path="./Pages/LandingPage" element={<LandingPage />} />
+              <Route path="/LandingPage" element={<LandingPage />} />
               <Route path="*" element={<Navigate to="/LandingPage" />} />
             </>
           )}
