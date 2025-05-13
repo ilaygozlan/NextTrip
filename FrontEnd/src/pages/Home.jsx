@@ -32,11 +32,11 @@ const MapContainer = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-function Home() {
+function Home(props) {
   return (
     <>
       <Hero>
-        <Title>Welcome to NextTrip</Title>
+        <Title>Welcome to NextTrip, {props.userName}!</Title>
         <Subtitle>Discover the world, one country at a time. Click on countries you've visited to mark them and start planning your next adventure.</Subtitle>
       </Hero>
       <MapContainer>

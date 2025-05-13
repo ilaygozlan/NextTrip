@@ -10,6 +10,7 @@ import config from "../config";
 
 const AppRoutes = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState("");
 
   useEffect(() => {
     const urlParams = new URLSearchParams(
@@ -18,36 +19,24 @@ const AppRoutes = () => {
     const code = urlParams.get("code");
 
     if (code) {
-      console.log("Authorization code:", code);
-      const url = new URLSearchParams({
-        grant_type: "authorization_code",
-        client_id: config.clientId,
-        client_secret:
-          "1hphf4hi8ljs6qtcnjkeijthha3bqai7bas1s909vk0m046t1scd",
-        redirect_uri: config.redirectUri,
-        code: code,
-      }).toString();
-      console.log(url);
-      const exchangeCodeForTokens = async () => {
-        console.log(142)
-        try {
-            console.log("ff")
-          const url = new URLSearchParams({
-            grant_type: "authorization_code",
-            client_id: config.clientId,
-            client_secret:
-              "1hphf4hi8ljs6qtcnjkeijthha3bqai7bas1s909vk0m046t1scd",
-            redirect_uri: config.redirectUri,
-            code: code,
-          }).toString();
-          console.log(url);
+      console.log("Authorization code1:", code);
 
-          const response = await fetch(`${config.domain}/oauth2/token`, {
+      const exchangeCodeForTokens = async () => {
+        try {
+          const getTokenUrl = `${config.domain}/oauth2/token`;
+          console.log(getTokenUrl);
+          const response = await fetch(getTokenUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: url,
+            body: new URLSearchParams({
+                grant_type: "authorization_code",
+                client_id: config.clientId,
+                client_secret: config.clientSecret,
+                redirect_uri: config.redirectUri,
+                code: code,
+              }).toString(),
           });
 
           const data = await response.json();
@@ -58,7 +47,7 @@ const AppRoutes = () => {
             localStorage.setItem("access_token", data.access_token);
             setIsAuthenticated(true);
 
-            // Decode the id_token to get user email
+            // Decode the id_token to get user email + name
             const base64Url = data.id_token.split(".")[1];
             const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
             const jsonPayload = decodeURIComponent(
@@ -70,7 +59,9 @@ const AppRoutes = () => {
                 .join("")
             );
             const decoded = JSON.parse(jsonPayload);
-            console.log("User email:", decoded.email); // 👈 Here’s the email!
+            console.log("User email:", decoded.email);
+            setUser(decoded.name); 
+            console.log("User name:", decoded.name); 
           } else {
             console.error("No ID token received.");
           }
@@ -90,7 +81,7 @@ const AppRoutes = () => {
         <Routes>
           {isAuthenticated ? (
             <>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<Home userName={user}/>} />
               <Route path="/my-trips" element={<MyTrips />} />
               <Route path="/rate-country" element={<RateCountry />} />
               <Route path="/country/:countryName" element={<CountryPage />} />
