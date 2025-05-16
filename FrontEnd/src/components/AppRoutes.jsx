@@ -31,12 +31,12 @@ const AppRoutes = () => {
               "Content-Type": "application/x-www-form-urlencoded",
             },
             body: new URLSearchParams({
-                grant_type: "authorization_code",
-                client_id: config.clientId,
-                client_secret: config.clientSecret,
-                redirect_uri: config.redirectUri,
-                code: code,
-              }).toString(),
+              grant_type: "authorization_code",
+              client_id: config.clientId,
+              client_secret: config.clientSecret,
+              redirect_uri: config.redirectUri,
+              code: code,
+            }).toString(),
           });
 
           const data = await response.json();
@@ -60,8 +60,39 @@ const AppRoutes = () => {
             );
             const decoded = JSON.parse(jsonPayload);
             console.log("User email:", decoded.email);
-            setUser(decoded.name); 
-            console.log("User name:", decoded.name); 
+            setUser(decoded.name);
+            console.log("User name:", decoded.name);
+
+            // Optionally fetch user details from your protected Lambda API
+            const fetchUserDetails = async () => {
+              try {
+                const idToken = localStorage.getItem("id_token");
+                const response = await fetch(
+                  "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/GetUserData",
+                  {
+                    method: "GET",
+                    headers: {
+                      Authorization: `Bearer ${idToken}`,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+
+                if (!response.ok) {
+                  throw new Error(`HTTP ${response.status}`);
+                }
+
+                const userData = await response.json();
+                console.log("User from Lambda:", userData);
+
+                // If you want to use that instead of decoded token:
+                // setUser(userData.user.name || userData.user.email);
+              } catch (err) {
+                console.error("Error fetching user details from Lambda:", err);
+              }
+            };
+
+            fetchUserDetails(); 
           } else {
             console.error("No ID token received.");
           }
@@ -81,7 +112,7 @@ const AppRoutes = () => {
         <Routes>
           {isAuthenticated ? (
             <>
-              <Route path="/" element={<Home userName={user}/>} />
+              <Route path="/" element={<Home userName={user} />} />
               <Route path="/my-trips" element={<MyTrips />} />
               <Route path="/rate-country" element={<RateCountry />} />
               <Route path="/country/:countryName" element={<CountryPage />} />
