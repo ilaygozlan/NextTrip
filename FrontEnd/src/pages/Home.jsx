@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import MapComponent from '../components/Map';
+import { useUser } from '../contexts/UserContext';
 
 const Hero = styled.div`
   text-align: center;
@@ -32,12 +33,16 @@ const MapContainer = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-function Home(props) {
+function Home() {
+  const { user } = useUser();
+
   return (
     <>
       <Hero>
-        <Title>Welcome to NextTrip, {props.userName}!</Title>
-        <Subtitle>Discover the world, one country at a time. Click on countries you've visited to mark them and start planning your next adventure.</Subtitle>
+        <Title>Welcome to NextTrip{user?.name ? `, ${user.name}` : ''}!</Title>
+        <Subtitle>
+          Discover the world, one country at a time. Click on countries you've visited to mark them and start planning your next adventure.
+        </Subtitle>
       </Hero>
       <MapContainer>
         <MapComponent />

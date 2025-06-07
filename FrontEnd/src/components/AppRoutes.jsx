@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Home from "../pages/Home";
 import MyTrips from "../pages/MyTrips";
@@ -8,10 +8,11 @@ import CountryPage from "../pages/CountryPage";
 import LandingPage from "../pages/LandingPage";
 import Signup from "../pages/Signup";
 import config from "../config";
+import { UserContext } from "../contexts/UserContext";
 
 const AppRoutes = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState("");
+  const [user, setUser] = useState(null); // { name, email }
 
   useEffect(() => {
     const urlParams = new URLSearchParams(
@@ -20,12 +21,10 @@ const AppRoutes = () => {
     const code = urlParams.get("code");
 
     if (code) {
-      console.log("Authorization code1:", code);
-
       const exchangeCodeForTokens = async () => {
         try {
           const getTokenUrl = `${config.domain}/oauth2/token`;
-          console.log(getTokenUrl);
+
           const response = await fetch(getTokenUrl, {
             method: "POST",
             headers: {
@@ -41,30 +40,30 @@ const AppRoutes = () => {
           });
 
           const data = await response.json();
-          console.log("Token response:", data);
 
           if (data.id_token) {
             localStorage.setItem("id_token", data.id_token);
             localStorage.setItem("access_token", data.access_token);
             setIsAuthenticated(true);
 
-            // Decode the id_token to get user email + name
+            // Decode token to get name & email
             const base64Url = data.id_token.split(".")[1];
             const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
             const jsonPayload = decodeURIComponent(
               atob(base64)
                 .split("")
                 .map(
-                  (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+                  (c) =>
+                    "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
                 )
                 .join("")
             );
             const decoded = JSON.parse(jsonPayload);
             console.log("User email:", decoded.email);
-            setUser(decoded.name);
             console.log("User name:", decoded.name);
+            setUser({ name: decoded.name, email: decoded.email });
 
-            // Optionally fetch user details from your protected Lambda API
+            // Optional Lambda fetch
             const fetchUserDetails = async () => {
               try {
                 const idToken = localStorage.getItem("id_token");
@@ -86,14 +85,14 @@ const AppRoutes = () => {
                 const userData = await response.json();
                 console.log("User from Lambda:", userData);
 
-                // If you want to use that instead of decoded token:
-                // setUser(userData.user.name || userData.user.email);
+                // If needed, update user from Lambda:
+                // setUser(userData.user);
               } catch (err) {
                 console.error("Error fetching user details from Lambda:", err);
               }
             };
 
-            fetchUserDetails(); 
+            fetchUserDetails();
           } else {
             console.error("No ID token received.");
           }
@@ -107,13 +106,13 @@ const AppRoutes = () => {
   }, []);
 
   return (
-    <>
+    <UserContext.Provider value={{ user }}>
       {isAuthenticated && <Navbar />}
       <main style={{ minHeight: "calc(100vh - 64px)", padding: "2rem 0" }}>
         <Routes>
           {isAuthenticated ? (
             <>
-              <Route path="/" element={<Home userName={user} />} />
+              <Route path="/" element={<Home />} />
               <Route path="/my-trips" element={<MyTrips />} />
               <Route path="/rate-country" element={<RateCountry />} />
               <Route path="/country/:countryName" element={<CountryPage />} />
@@ -129,7 +128,7 @@ const AppRoutes = () => {
           )}
         </Routes>
       </main>
-    </>
+    </UserContext.Provider>
   );
 };
 

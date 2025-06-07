@@ -8,28 +8,56 @@ import {
 import { geoCentroid } from "d3-geo";
 import geoData from "../features.json";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../contexts/UserContext";
 
 const MapComponent = () => {
   const [visitedCountries, setVisitedCountries] = useState([]);
-  const [selected, setSelected] = useState(null); // { geo, coordinates }
+  const [selected, setSelected] = useState(null);
+  const { user } = useUser();
+  const navigate = useNavigate();
 
   const handleClick = (geo) => {
     if (selected?.geo?.id === geo.id) {
-      setSelected(null); // Toggle off
+      setSelected(null);
     } else {
       const centroid = geoCentroid(geo);
       setSelected({ geo, coordinates: centroid });
     }
   };
 
-  const markAsVisited = () => {
+  const markAsVisited = async () => {
     const code = selected.geo.id;
+    const countryName = selected.geo.properties.name;
+
     if (!visitedCountries.includes(code)) {
       setVisitedCountries([...visitedCountries, code]);
+
+      try {
+        const response = await fetch("https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCountry", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user?.email,
+            newCountry: countryName,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Failed to update country:", data);
+          alert("Error: " + data.message);
+        } else {
+          console.log("Successfully updated:", data);
+        }
+      } catch (err) {
+        console.error("Request failed:", err);
+        alert("An error occurred while marking the country.");
+      }
     }
   };
-
-  const navigate = useNavigate();
 
   const goToCountryPage = () => {
     navigate(`/country/${selected.geo.properties.name}`);

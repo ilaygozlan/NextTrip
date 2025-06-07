@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
+const apiBaseUrl = "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod";
+
 const Container = styled.div`
   min-height: 100vh;
   display: flex;
@@ -136,16 +138,10 @@ const ToggleButton = styled.button`
 
 function Signup() {
   const [userType, setUserType] = useState("traveler");
-  const handleContinue = () => {
-    const cognitoSignupUrl =
-      `${config.domain}/signup?` +
-      `response_type=code&` +
-      `client_id=${config.clientId}&` +
-      `redirect_uri=${encodeURIComponent(config.redirectUri)}&` +
-      `scope=openid+aws.cognito.signin.user.admin+email+profile&` +
-      `userType=${userType}`;
 
-    window.location.href = cognitoSignupUrl;
+  const handleContinue = () => {
+   
+    window.location.href = `${apiBaseUrl}/signup?userType=${userType}`;
   };
 
   return (
