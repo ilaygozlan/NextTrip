@@ -37,6 +37,7 @@ const MainContent = styled.main`
 `;
 
 function App() {
+  
   return (
     <Router>
       <GlobalStyle />

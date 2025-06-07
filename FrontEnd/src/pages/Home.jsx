@@ -33,6 +33,8 @@ const MapContainer = styled.div`
 `;
 
 function Home(props) {
+  console.log("userType: ", props.userType);
+
   return (
     <>
       <Hero>

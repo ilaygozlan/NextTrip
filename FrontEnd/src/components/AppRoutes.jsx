@@ -12,6 +12,7 @@ import config from "../config";
 const AppRoutes = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState("");
+  const [userType, setUserType] = useState("traveler");
 
   useEffect(() => {
     const urlParams = new URLSearchParams(
@@ -113,7 +114,7 @@ const AppRoutes = () => {
         <Routes>
           {isAuthenticated ? (
             <>
-              <Route path="/" element={<Home userName={user} />} />
+              <Route path="/" element={<Home userName={user} userType={userType}/>} />
               <Route path="/my-trips" element={<MyTrips />} />
               <Route path="/rate-country" element={<RateCountry />} />
               <Route path="/country/:countryName" element={<CountryPage />} />
@@ -123,7 +124,7 @@ const AppRoutes = () => {
             <>
               <Route path="/" element={<Navigate to="/LandingPage" />} />
               <Route path="/LandingPage" element={<LandingPage />} />
-              <Route path="/signup" element={<Signup />} />
+              <Route path="/signup" element={<Signup userType={userType} setUserType={setUserType}/>} />
               <Route path="*" element={<Navigate to="/LandingPage" />} />
             </>
           )}

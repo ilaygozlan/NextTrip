@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import config from "../config";
+import Login from "./Login";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -91,7 +92,7 @@ const LoginLink = styled.div`
 `;
 
 const ContinueButton = styled.button`
-  background:rgb(249, 191, 97); /* צבע כתום */
+  background: rgb(249, 191, 97); /* צבע כתום */
   color: white;
   padding: 0.75rem 1.5rem;
   border: none;
@@ -104,7 +105,7 @@ const ContinueButton = styled.button`
   margin: 2rem auto 0 auto; /* מרכז את הכפתור */
 
   &:hover {
-    background:rgb(213, 141, 77);
+    background: rgb(213, 141, 77);
   }
 `;
 
@@ -135,8 +136,7 @@ const ToggleButton = styled.button`
   }
 `;
 
-function Signup() {
-  const [userType, setUserType] = useState("traveler");
+function Signup(props) {
   const handleContinue = () => {
     const cognitoSignupUrl =
       `${config.domain}/login?` +
@@ -156,20 +156,24 @@ function Signup() {
         <UserTypeToggle>
           <ToggleButton
             type="button"
-            active={userType === "traveler"}
-            onClick={() => setUserType("traveler")}
+            active={props.userType === "traveler"}
+            onClick={() => {
+              props.setUserType("traveler");
+            }}
           >
             Traveler
           </ToggleButton>
           <ToggleButton
             type="button"
-            active={userType === "business"}
-            onClick={() => setUserType("business")}
+            active={props.userType === "business"}
+            onClick={() => {
+              props.setUserType("business");
+            }}
           >
             Business
           </ToggleButton>
         </UserTypeToggle>
-        <ContinueButton type="button" onClick={handleContinue}>
+        <ContinueButton type="button" onClick={()=>{Login()}}>
           Continue
         </ContinueButton>
       </FormContainer>
