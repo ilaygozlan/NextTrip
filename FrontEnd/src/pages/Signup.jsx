@@ -3,7 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import config from "../config";
 import Login from "./Login";
+<<<<<<< HEAD
 
+=======
+import { useUser } from "../contexts/UserContext";
+>>>>>>> Adi
 
 const Container = styled.div`
   min-height: 100vh;
@@ -94,7 +98,10 @@ const LoginLink = styled.div`
 
 const ContinueButton = styled.button`
   background: rgb(249, 191, 97); /* צבע כתום */
+<<<<<<< HEAD
   background: rgb(249, 191, 97); /* צבע כתום */
+=======
+>>>>>>> Adi
   color: white;
   padding: 0.75rem 1.5rem;
   border: none;
@@ -108,7 +115,10 @@ const ContinueButton = styled.button`
 
   &:hover {
     background: rgb(213, 141, 77);
+<<<<<<< HEAD
     background: rgb(213, 141, 77);
+=======
+>>>>>>> Adi
   }
 `;
 
@@ -139,7 +149,18 @@ const ToggleButton = styled.button`
   }
 `;
 
+<<<<<<< HEAD
 function Signup(props) {
+=======
+function Signup() {
+  const [userType, setUserType] = useState("traveler");
+  const { setUser } = useUser();
+
+  const handleContinue = () => {
+    setUser((prev) => ({ ...prev, type: userType }));
+    Login();
+  };
+>>>>>>> Adi
 
   return (
     <Container>
@@ -148,27 +169,45 @@ function Signup(props) {
         <UserTypeToggle>
           <ToggleButton
             type="button"
+<<<<<<< HEAD
             active={props.userType === "traveler"}
             onClick={() => {
               props.setUserType("traveler");
                console.log(props.userType);
+=======
+            active={userType === "traveler"}
+            onClick={() => {
+              setUserType("traveler");
+              console.log("userType:", "traveler");
+>>>>>>> Adi
             }}
           >
             Traveler
           </ToggleButton>
           <ToggleButton
             type="button"
+<<<<<<< HEAD
             active={props.userType === "business"}
             onClick={() => {
               props.setUserType("business");
               console.log(props.userType);
+=======
+            active={userType === "business"}
+            onClick={() => {
+              setUserType("business");
+              console.log("userType:", "business");
+>>>>>>> Adi
             }}
           >
             Business
           </ToggleButton>
         </UserTypeToggle>
+<<<<<<< HEAD
         <ContinueButton type="button" onClick={()=>{Login()}}>
         <ContinueButton type="button" onClick={()=>{Login()}}>
+=======
+        <ContinueButton type="button" onClick={handleContinue}>
+>>>>>>> Adi
           Continue
         </ContinueButton>
       </FormContainer>
