@@ -122,7 +122,8 @@ const AppRoutes = () => {
           ) : (
             <>
               <Route path="/" element={<Navigate to="/LandingPage" />} />
-              <Route path="/LandingPage" element={<Signup />} />
+              <Route path="/LandingPage" element={<LandingPage />} />
+              <Route path="/signup" element={<Signup />} />
               <Route path="*" element={<Navigate to="/LandingPage" />} />
             </>
           )}

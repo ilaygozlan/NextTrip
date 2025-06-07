@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import styled from "styled-components";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -89,6 +89,24 @@ const LoginLink = styled.div`
   }
 `;
 
+const ContinueButton = styled.button`
+  background:rgb(240, 186, 101); /* צבע כתום */
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: block;
+  margin: 2rem auto 0 auto; /* מרכז את הכפתור */
+
+  &:hover {
+    background:rgb(213, 141, 77);
+  }
+`;
+
 const ErrorMessage = styled.div`
   color: #e74c3c;
   text-align: center;
@@ -105,19 +123,19 @@ const ToggleButton = styled.button`
   flex: 1;
   padding: 0.75rem;
   border: 1px solid #3498db;
-  background: ${props => props.active ? '#3498db' : 'white'};
-  color: ${props => props.active ? 'white' : '#3498db'};
+  background: ${(props) => (props.active ? "#3498db" : "white")};
+  color: ${(props) => (props.active ? "white" : "#3498db")};
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    background: ${props => props.active ? '#2980b9' : '#f7f9fc'};
+    background: ${(props) => (props.active ? "#2980b9" : "#f7f9fc")};
   }
 `;
 
 function Signup() {
-  const [userType, setUserType] = useState('traveler');
+  const [userType, setUserType] = useState("traveler");
   const handleContinue = () => {
     const cognitoSignupUrl =
       `${config.domain}/signup?` +
@@ -134,28 +152,28 @@ function Signup() {
     <Container>
       <FormContainer>
         <Title>Create Account</Title>
-          <UserTypeToggle>
+        <UserTypeToggle>
           <ToggleButton
             type="button"
-            active={userType === 'traveler'}
-            onClick={() => setUserType('traveler')}
+            active={userType === "traveler"}
+            onClick={() => setUserType("traveler")}
           >
             Traveler
           </ToggleButton>
           <ToggleButton
             type="button"
-            active={userType === 'business'}
-            onClick={() => setUserType('business')}
+            active={userType === "business"}
+            onClick={() => setUserType("business")}
           >
             Business
           </ToggleButton>
         </UserTypeToggle>
-        <Button type="button" onClick={handleContinue}>
+        <ContinueButton type="button" onClick={handleContinue}>
           Continue Sign Up
-        </Button>
+        </ContinueButton>
       </FormContainer>
     </Container>
   );
 }
 
-export default Signup; 
+export default Signup;
