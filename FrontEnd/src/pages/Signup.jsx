@@ -116,40 +116,25 @@ const ToggleButton = styled.button`
   }
 `;
 
-function Signup({ onLogin }) {
-  const navigate = useNavigate();
+function Signup() {
   const [userType, setUserType] = useState('traveler');
-  const [error, setError] = useState('');
+  const handleContinue = () => {
+    const cognitoSignupUrl =
+      `${config.domain}/signup?` +
+      `response_type=code&` +
+      `client_id=${config.clientId}&` +
+      `redirect_uri=${encodeURIComponent(config.redirectUri)}&` +
+      `scope=openid+aws.cognito.signin.user.admin+email+profile&` +
+      `userType=${userType}`;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    // Here you would typically make an API call to create the account
-    // For now, we'll just simulate a successful signup
-    if (formData.name && formData.email && formData.password) {
-      onLogin();
-      navigate('/');
-    } else {
-      setError('Please fill in all fields');
-    }
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    window.location.href = cognitoSignupUrl;
   };
 
   return (
     <Container>
       <FormContainer>
         <Title>Create Account</Title>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        <UserTypeToggle>
+          <UserTypeToggle>
           <ToggleButton
             type="button"
             active={userType === 'traveler'}
@@ -165,7 +150,9 @@ function Signup({ onLogin }) {
             Business
           </ToggleButton>
         </UserTypeToggle>
-          <Button type="submit">Contiue Sign Up</Button>
+        <Button type="button" onClick={handleContinue}>
+          Continue Sign Up
+        </Button>
       </FormContainer>
     </Container>
   );
