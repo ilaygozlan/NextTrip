@@ -118,12 +118,6 @@ const ToggleButton = styled.button`
 
 function Signup({ onLogin }) {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
   const [userType, setUserType] = useState('traveler');
   const [error, setError] = useState('');
 
@@ -171,60 +165,7 @@ function Signup({ onLogin }) {
             Business
           </ToggleButton>
         </UserTypeToggle>
-        <Form onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label htmlFor="name">{userType === 'business' ? 'Business Name' : 'Full Name'}</Label>
-            <Input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder={userType === 'business' ? 'Enter business name' : 'Enter your full name'}
-              required
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              required
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              required
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              required
-            />
-          </FormGroup>
-          <Button type="submit">Sign Up</Button>
-        </Form>
-        <LoginLink>
-          Already have an account? <Link to="/login">Log in</Link>
-        </LoginLink>
+          <Button type="submit">Contiue Sign Up</Button>
       </FormContainer>
     </Container>
   );

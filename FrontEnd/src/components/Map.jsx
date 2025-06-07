@@ -70,7 +70,6 @@ const MapComponent = () => {
           }
         </Geographies>
 
-        {/* Tooltip על המפה עם כפתור */}
         {selected && selected.coordinates && (
           <Marker coordinates={selected.coordinates}>
             <foreignObject x={-60} y={-60} width={150} height={100}>

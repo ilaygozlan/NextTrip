@@ -6,6 +6,7 @@ import MyTrips from "../pages/MyTrips";
 import RateCountry from "../pages/RateCountry";
 import CountryPage from "../pages/CountryPage";
 import LandingPage from "../pages/LandingPage";
+import Signup from "../pages/Signup";
 import config from "../config";
 
 const AppRoutes = () => {
@@ -121,7 +122,7 @@ const AppRoutes = () => {
           ) : (
             <>
               <Route path="/" element={<Navigate to="/LandingPage" />} />
-              <Route path="/LandingPage" element={<LandingPage />} />
+              <Route path="/LandingPage" element={<Signup />} />
               <Route path="*" element={<Navigate to="/LandingPage" />} />
             </>
           )}
