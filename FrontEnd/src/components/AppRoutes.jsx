@@ -63,29 +63,29 @@ const AppRoutes = () => {
             setUser({ name: decoded.name, email: decoded.email });
 
             const fetchUserDetails = async () => {
-              try {
-                const idToken = localStorage.getItem("id_token");
-                const response = await fetch(
-                  "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/GetUserData",
-                  {
-                    method: "GET",
-                    headers: {
-                      Authorization: `Bearer ${idToken}`,
-                      "Content-Type": "application/json",
-                    },
-                  }
-                );
+                try {
+                  const idToken = localStorage.getItem("id_token");
 
-                if (!response.ok) {
-                  throw new Error(`HTTP ${response.status}`);
+                  const response = await fetch(
+                    "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/GetUserData",
+                    {
+                      method: "POST", 
+                      headers: {
+                        Authorization: `Bearer ${idToken}`,
+                        "Content-Type": "application/json"
+                      },
+                      body: JSON.stringify({ email: decoded.email })
+                    }
+                  );
+
+                  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                  const userData = await response.json();
+                  console.log("User from Lambda:", userData);
+                } catch (err) {
+                  console.error("Error fetching user details from Lambda:", err);
                 }
-
-                const userData = await response.json();
-                console.log("User from Lambda:", userData);
-              } catch (err) {
-                console.error("Error fetching user details from Lambda:", err);
-              }
-            };
+              };
 
             fetchUserDetails();
           } else {
