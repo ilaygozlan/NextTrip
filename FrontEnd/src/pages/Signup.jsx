@@ -4,6 +4,7 @@ import styled from "styled-components";
 import config from "../config";
 import Login from "./Login";
 
+
 const Container = styled.div`
   min-height: 100vh;
   display: flex;
@@ -93,6 +94,7 @@ const LoginLink = styled.div`
 
 const ContinueButton = styled.button`
   background: rgb(249, 191, 97); /* צבע כתום */
+  background: rgb(249, 191, 97); /* צבע כתום */
   color: white;
   padding: 0.75rem 1.5rem;
   border: none;
@@ -105,6 +107,7 @@ const ContinueButton = styled.button`
   margin: 2rem auto 0 auto; /* מרכז את הכפתור */
 
   &:hover {
+    background: rgb(213, 141, 77);
     background: rgb(213, 141, 77);
   }
 `;
@@ -164,6 +167,7 @@ function Signup(props) {
             Business
           </ToggleButton>
         </UserTypeToggle>
+        <ContinueButton type="button" onClick={()=>{Login()}}>
         <ContinueButton type="button" onClick={()=>{Login()}}>
           Continue
         </ContinueButton>
