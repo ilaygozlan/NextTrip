@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import config from "../config";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -90,7 +91,7 @@ const LoginLink = styled.div`
 `;
 
 const ContinueButton = styled.button`
-  background:rgb(240, 186, 101); /* צבע כתום */
+  background:rgb(249, 191, 97); /* צבע כתום */
   color: white;
   padding: 0.75rem 1.5rem;
   border: none;
@@ -138,7 +139,7 @@ function Signup() {
   const [userType, setUserType] = useState("traveler");
   const handleContinue = () => {
     const cognitoSignupUrl =
-      `${config.domain}/signup?` +
+      `${config.domain}/login?` +
       `response_type=code&` +
       `client_id=${config.clientId}&` +
       `redirect_uri=${encodeURIComponent(config.redirectUri)}&` +
@@ -151,7 +152,7 @@ function Signup() {
   return (
     <Container>
       <FormContainer>
-        <Title>Create Account</Title>
+        <Title>Next Trip</Title>
         <UserTypeToggle>
           <ToggleButton
             type="button"
@@ -169,7 +170,7 @@ function Signup() {
           </ToggleButton>
         </UserTypeToggle>
         <ContinueButton type="button" onClick={handleContinue}>
-          Continue Sign Up
+          Continue
         </ContinueButton>
       </FormContainer>
     </Container>
