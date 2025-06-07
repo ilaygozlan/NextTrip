@@ -137,17 +137,6 @@ const ToggleButton = styled.button`
 `;
 
 function Signup(props) {
-  const handleContinue = () => {
-    const cognitoSignupUrl =
-      `${config.domain}/login?` +
-      `response_type=code&` +
-      `client_id=${config.clientId}&` +
-      `redirect_uri=${encodeURIComponent(config.redirectUri)}&` +
-      `scope=openid+aws.cognito.signin.user.admin+email+profile&` +
-      `userType=${userType}`;
-
-    window.location.href = cognitoSignupUrl;
-  };
 
   return (
     <Container>
@@ -159,6 +148,7 @@ function Signup(props) {
             active={props.userType === "traveler"}
             onClick={() => {
               props.setUserType("traveler");
+               console.log(props.userType);
             }}
           >
             Traveler
@@ -168,6 +158,7 @@ function Signup(props) {
             active={props.userType === "business"}
             onClick={() => {
               props.setUserType("business");
+              console.log(props.userType);
             }}
           >
             Business
