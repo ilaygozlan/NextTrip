@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-
-const apiBaseUrl = "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod";
+import config from "../config";
+import Login from "./Login";
+import { useUser } from "../contexts/UserContext";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -92,7 +93,7 @@ const LoginLink = styled.div`
 `;
 
 const ContinueButton = styled.button`
-  background:rgb(240, 186, 101); /* צבע כתום */
+  background: rgb(249, 191, 97); /* צבע כתום */
   color: white;
   padding: 0.75rem 1.5rem;
   border: none;
@@ -105,7 +106,7 @@ const ContinueButton = styled.button`
   margin: 2rem auto 0 auto; /* מרכז את הכפתור */
 
   &:hover {
-    background:rgb(213, 141, 77);
+    background: rgb(213, 141, 77);
   }
 `;
 
@@ -138,34 +139,41 @@ const ToggleButton = styled.button`
 
 function Signup() {
   const [userType, setUserType] = useState("traveler");
+  const { setUser } = useUser();
 
   const handleContinue = () => {
-   
-    window.location.href = `${apiBaseUrl}/signup?userType=${userType}`;
+    setUser((prev) => ({ ...prev, type: userType }));
+    Login();
   };
 
   return (
     <Container>
       <FormContainer>
-        <Title>Create Account</Title>
+        <Title>Next Trip</Title>
         <UserTypeToggle>
           <ToggleButton
             type="button"
             active={userType === "traveler"}
-            onClick={() => setUserType("traveler")}
+            onClick={() => {
+              setUserType("traveler");
+              console.log("userType:", "traveler");
+            }}
           >
             Traveler
           </ToggleButton>
           <ToggleButton
             type="button"
             active={userType === "business"}
-            onClick={() => setUserType("business")}
+            onClick={() => {
+              setUserType("business");
+              console.log("userType:", "business");
+            }}
           >
             Business
           </ToggleButton>
         </UserTypeToggle>
         <ContinueButton type="button" onClick={handleContinue}>
-          Continue Sign Up
+          Continue
         </ContinueButton>
       </FormContainer>
     </Container>

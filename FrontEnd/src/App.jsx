@@ -3,7 +3,8 @@ import { HashRouter as Router } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
-import AppRoutes from "../src/components/AppRoutes"; // 👈 We'll create this next
+import AppRoutes from "../src/components/AppRoutes";
+import { UserProvider } from "./contexts/UserContext";
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -39,8 +40,10 @@ const MainContent = styled.main`
 function App() {
   return (
     <Router>
-      <GlobalStyle />
-      <AppRoutes />
+      <UserProvider>
+        <GlobalStyle />
+        <AppRoutes />
+      </UserProvider>
     </Router>
   );
 }

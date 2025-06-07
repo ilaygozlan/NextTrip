@@ -28,12 +28,12 @@ const MapComponent = () => {
   const markAsVisited = async () => {
     const code = selected.geo.id;
     const countryName = selected.geo.properties.name;
+      console.log(user.email,countryName);
 
     if (!visitedCountries.includes(code)) {
       setVisitedCountries([...visitedCountries, code]);
-
       try {
-        const response = await fetch("https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCountry", {
+        const response = await fetch("https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCounrty", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

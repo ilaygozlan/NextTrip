@@ -8,11 +8,11 @@ import CountryPage from "../pages/CountryPage";
 import LandingPage from "../pages/LandingPage";
 import Signup from "../pages/Signup";
 import config from "../config";
-import { UserContext } from "../contexts/UserContext";
+import { useUser } from "../contexts/UserContext"; 
 
 const AppRoutes = () => {
+  const { user, setUser } = useUser(); 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null); // { name, email }
 
   useEffect(() => {
     const urlParams = new URLSearchParams(
@@ -53,8 +53,7 @@ const AppRoutes = () => {
               atob(base64)
                 .split("")
                 .map(
-                  (c) =>
-                    "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+                  (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
                 )
                 .join("")
             );
@@ -63,7 +62,6 @@ const AppRoutes = () => {
             console.log("User name:", decoded.name);
             setUser({ name: decoded.name, email: decoded.email });
 
-            // Optional Lambda fetch
             const fetchUserDetails = async () => {
               try {
                 const idToken = localStorage.getItem("id_token");
@@ -84,9 +82,6 @@ const AppRoutes = () => {
 
                 const userData = await response.json();
                 console.log("User from Lambda:", userData);
-
-                // If needed, update user from Lambda:
-                // setUser(userData.user);
               } catch (err) {
                 console.error("Error fetching user details from Lambda:", err);
               }
@@ -103,10 +98,10 @@ const AppRoutes = () => {
 
       exchangeCodeForTokens();
     }
-  }, []);
+  }, [setUser]);
 
   return (
-    <UserContext.Provider value={{ user }}>
+    <>
       {isAuthenticated && <Navbar />}
       <main style={{ minHeight: "calc(100vh - 64px)", padding: "2rem 0" }}>
         <Routes>
@@ -128,7 +123,7 @@ const AppRoutes = () => {
           )}
         </Routes>
       </main>
-    </UserContext.Provider>
+    </>
   );
 };
 
