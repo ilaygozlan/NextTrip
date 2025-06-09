@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import MapComponent from '../components/Map';
 import { useUser } from '../contexts/UserContext';
@@ -35,6 +35,36 @@ const MapContainer = styled.div`
 
 function Home() {
   const { user } = useUser();
+
+  useEffect(() => {
+    const postUserType = async () => {
+      try {
+        const response = await fetch("https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/setUserType", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: user?.email,
+            userType: user?.type,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update user type: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('User type updated successfully:', data);
+      } catch (error) {
+        console.error('Error updating user type:', error);
+      }
+    };
+
+    if (user?.email && user?.type) {
+      postUserType();
+    }
+  }, [user]);
 
   return (
     <>
