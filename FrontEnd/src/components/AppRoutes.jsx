@@ -8,10 +8,46 @@ import CountryPage from "../pages/CountryPage";
 import LandingPage from "../pages/LandingPage";
 import Signup from "../pages/Signup";
 import config from "../config";
-import { useUser } from "../contexts/UserContext"; 
+import { useUser } from "../contexts/UserContext";
+import styled, { keyframes } from "styled-components";
+
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const Spinner = styled.div`
+  border: 6px solid #ccc;
+  border-top: 6px solid #1976d2;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  margin-top: 20px;
+  font-size: 1.2rem;
+  color: #333;
+  font-family: "Segoe UI", sans-serif;
+`;
 
 const AppRoutes = () => {
-  const { user, setUser } = useUser(); 
+  const { user, setUser } = useUser();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -60,32 +96,32 @@ const AppRoutes = () => {
             const decoded = JSON.parse(jsonPayload);
             console.log("User email:", decoded.email);
             console.log("User name:", decoded.name);
-            setUser({ name: decoded.name, email: decoded.email });
 
             const fetchUserDetails = async () => {
-                try {
-                  const idToken = localStorage.getItem("id_token");
+              try {
+                const idToken = localStorage.getItem("id_token");
 
-                  const response = await fetch(
-                    "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/GetUserData",
-                    {
-                      method: "POST", 
-                      headers: {
-                        Authorization: `Bearer ${idToken}`,
-                        "Content-Type": "application/json"
-                      },
-                      body: JSON.stringify({ email: decoded.email })
-                    }
-                  );
+                const response = await fetch(
+                  "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/GetUserData",
+                  {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${idToken}`,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email: decoded.email }),
+                  }
+                );
 
-                  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-                  const userData = await response.json();
-                  console.log("User from Lambda:", userData);
-                } catch (err) {
-                  console.error("Error fetching user details from Lambda:", err);
-                }
-              };
+                const userData = await response.json();
+                console.log("User from Lambda:", userData);
+                setUser(userData);
+              } catch (err) {
+                console.error("Error fetching user details from Lambda:", err);
+              }
+            };
 
             fetchUserDetails();
           } else {
@@ -98,26 +134,44 @@ const AppRoutes = () => {
 
       exchangeCodeForTokens();
     }
-  }, [setUser]);
+  }, []);
+
+  if (isAuthenticated && !user?.Email) {
+    return (
+      <Overlay>
+        <Spinner />
+      </Overlay>
+    );
+  }
 
   return (
     <>
-      {isAuthenticated && <Navbar />}
+      {isAuthenticated && user?.userType && <Navbar />}
       <main style={{ minHeight: "calc(100vh - 64px)", padding: "2rem 0" }}>
         <Routes>
           {isAuthenticated ? (
-            <>
-              <Route path="/" element={<Home />} />
-              <Route path="/my-trips" element={<MyTrips />} />
-              <Route path="/rate-country" element={<RateCountry />} />
-              <Route path="/country/:countryName" element={<CountryPage />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </>
+            !user?.userType ? (
+              <>
+                <Route path="/" element={<Navigate to="/Signup" />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="*" element={<Navigate to="/Signup" />} />
+              </>
+            ) : (
+              <>
+                <Route
+                  path="/"
+                  element={<Home userCountries={user.visitedCountries} />}
+                />
+                <Route path="/my-trips" element={<MyTrips />} />
+                <Route path="/rate-country" element={<RateCountry />} />
+                <Route path="/country/:countryName" element={<CountryPage />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </>
+            )
           ) : (
             <>
               <Route path="/" element={<Navigate to="/LandingPage" />} />
               <Route path="/LandingPage" element={<LandingPage />} />
-              <Route path="/signup" element={<Signup />} />
               <Route path="*" element={<Navigate to="/LandingPage" />} />
             </>
           )}

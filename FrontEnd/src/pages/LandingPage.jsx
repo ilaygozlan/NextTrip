@@ -163,8 +163,8 @@ function LandingPage() {
       <Nav>
         <Logo>NextTrip</Logo>
         <NavButtons>
-          <Button to="/Signup" className="secondary">Log In</Button>
-          <Button to="/Signup" className="primary">Sign Up</Button>
+          <Button onClick={()=>{Login()}} className="secondary">Log In</Button>
+          <Button onClick={()=>{Login()}} className="primary">Sign Up</Button>
         </NavButtons>
       </Nav>
 
@@ -174,7 +174,7 @@ function LandingPage() {
           Explore countries, share experiences, and connect with fellow travelers.
           Your journey begins here.
         </Subtitle>
-        <Button to="/Signup" className="primary">Get Started</Button>
+        <Button onClick={()=>{Login()}} className="primary">Get Started</Button>
       </Hero>
 
       <Features>
@@ -217,7 +217,7 @@ function LandingPage() {
             <CTACardDescription>
               Discover new destinations, read reviews, and plan your next adventure.
             </CTACardDescription>
-            <Button to="/Signup" className="primary">Sign Up as Traveler</Button>
+            <Button onClick={()=>{Login()}} className="primary">Sign Up as Traveler</Button>
           </CTACard>
 
           <CTACard>
@@ -225,7 +225,7 @@ function LandingPage() {
             <CTACardDescription>
               List your business, reach travelers, and grow your customer base.
             </CTACardDescription>
-            <Button to="/Signup" className="primary">Register Business</Button>
+            <Button onClick={()=>{Login()}} className="primary">Register Business</Button>
           </CTACard>
         </CTAGrid>
       </CTA>

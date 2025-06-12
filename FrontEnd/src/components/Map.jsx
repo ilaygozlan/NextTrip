@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ComposableMap,
   Geographies,
@@ -10,11 +10,18 @@ import geoData from "../features.json";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 
-const MapComponent = () => {
-  const [visitedCountries, setVisitedCountries] = useState([]);
+const MapComponent = (props) => {
   const [selected, setSelected] = useState(null);
   const { user } = useUser();
+  const [visitedCountries, setVisitedCountries] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.visitedCountries) {
+      setVisitedCountries(user.visitedCountries);
+      console.log(user);
+    }
+  }, [user]);
 
   const handleClick = (geo) => {
     if (selected?.geo?.id === geo.id) {
@@ -28,7 +35,7 @@ const MapComponent = () => {
   const markAsVisited = async () => {
     const code = selected.geo.id;
     const countryName = selected.geo.properties.name;
-   if (!visitedCountries.includes(code)) {
+   if (!visitedCountries?.includes(code)) {
       setVisitedCountries([...visitedCountries, code]);
       try {
         const response = await fetch("https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCounrty", {
@@ -37,7 +44,7 @@ const MapComponent = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email: user?.email,
+            email: user?.Email,
             newCountry: countryName,
           }),
         });
@@ -61,13 +68,21 @@ const MapComponent = () => {
     navigate(`/country/${selected.geo.properties.name}`);
   };
 
+  if (!user?.Email) {
+    return (
+      <div style={{ textAlign: "center", paddingTop: "40px", fontSize: "18px" }}>
+        Loading user data...
+      </div>
+    );
+  }
+
   return (
     <div>
       <ComposableMap projection="geoMercator">
         <Geographies geography={geoData}>
           {({ geographies }) =>
             geographies.map((geo) => {
-              const code = geo.id;
+              const code = geo.properties.name;
               const isVisited = visitedCountries.includes(code);
 
               return (
@@ -127,7 +142,7 @@ const MapComponent = () => {
                   </span>
                 </div>
 
-                {!visitedCountries.includes(selected.geo.id) ? (
+                {!visitedCountries.includes(selected.geo.properties.name) ? (
                   <button
                     onClick={markAsVisited}
                     style={{

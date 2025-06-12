@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import config from "../config";
-import Login from "./Login";
 import { useUser } from "../contexts/UserContext";
 
 const Container = styled.div`
@@ -139,11 +138,44 @@ const ToggleButton = styled.button`
 
 function Signup() {
   const [userType, setUserType] = useState("traveler");
-  const { setUser } = useUser();
+  const { user, setUser } = useUser();
+  const navigate = useNavigate();
 
   const handleContinue = () => {
-    setUser((prev) => ({ ...prev, type: userType }));
-    Login();
+    setUser((prev) => ({ ...prev, userType: userType }));
+
+    const postUserType = async () => {
+
+      try {
+        const response = await fetch(
+          "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/setUserType",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: user?.Email,
+              userType: userType,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to update user type: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("User type updated successfully:", data);
+      } catch (error) {
+        console.error("Error updating user type:", error);
+      }
+    };
+
+    if (user?.Email && userType) {
+      postUserType();
+    }
+     navigate("/");
   };
 
   return (
@@ -172,7 +204,7 @@ function Signup() {
             Business
           </ToggleButton>
         </UserTypeToggle>
-        <ContinueButton type="button" onClick={handleContinue}>
+        <ContinueButton type="button" onClick={()=>{handleContinue()}}>
           Continue
         </ContinueButton>
       </FormContainer>
