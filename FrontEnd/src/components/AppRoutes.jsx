@@ -136,7 +136,7 @@ const AppRoutes = () => {
     }
   }, []);
 
-  if (isAuthenticated && !user?.Email) {
+  if (isAuthenticated && !user?.userType) {
     return (
       <Overlay>
         <Spinner />

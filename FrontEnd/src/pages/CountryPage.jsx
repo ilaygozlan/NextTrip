@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import styled from 'styled-components';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import styled from "styled-components";
+import { useUser } from "../contexts/UserContext";
 
 const Container = styled.div`
   max-width: 1200px;
@@ -94,7 +95,7 @@ const RatingContainer = styled.div`
 
 const Star = styled.span`
   font-size: 1.5rem;
-  color: ${props => props.active ? '#f1c40f' : '#ddd'};
+  color: ${(props) => (props.active ? "#f1c40f" : "#ddd")};
   cursor: pointer;
   transition: color 0.3s ease;
 
@@ -180,8 +181,8 @@ const ViewToggle = styled.div`
 `;
 
 const ToggleButton = styled.button`
-  background: ${props => props.active ? '#3498db' : 'white'};
-  color: ${props => props.active ? 'white' : '#2c3e50'};
+  background: ${(props) => (props.active ? "#3498db" : "white")};
+  color: ${(props) => (props.active ? "white" : "#2c3e50")};
   padding: 0.75rem 1.5rem;
   border: 2px solid #3498db;
   border-radius: 4px;
@@ -191,7 +192,7 @@ const ToggleButton = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    background: ${props => props.active ? '#2980b9' : '#f8f9fa'};
+    background: ${(props) => (props.active ? "#2980b9" : "#f8f9fa")};
   }
 `;
 
@@ -251,7 +252,8 @@ const BusinessCard = styled.div`
 const BusinessImage = styled.div`
   height: 200px;
   background: #f0f0f0;
-  background-image: ${props => props.image ? `url(${props.image})` : 'none'};
+  background-image: ${(props) =>
+    props.image ? `url(${props.image})` : "none"};
   background-size: cover;
   background-position: center;
 `;
@@ -286,51 +288,79 @@ const BusinessContact = styled.div`
 
 const CountryPage = () => {
   const { countryName } = useParams();
+  const { user } = useUser();
   const [isBusinessView, setIsBusinessView] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [formData, setFormData] = useState({
-    review: '',
-    tips: '',
+    review: "",
+    tips: "",
   });
   const [rating, setRating] = useState(0);
   const [businessFormData, setBusinessFormData] = useState({
-    name: '',
-    type: '',
-    description: '',
-    address: '',
-    phone: '',
-    email: '',
-    website: '',
-    openingHours: '',
+    name: "",
+    type: "",
+    description: "",
+    address: "",
+    phone: "",
+    email: "",
+    website: "",
+    openingHours: "",
   });
 
   // Sample business data
   const businesses = [
     {
       id: 1,
-      name: 'Le Petit Café',
-      type: 'Restaurant',
-      description: 'Authentic French cuisine in a cozy atmosphere',
-      address: '123 Rue de Paris',
-      phone: '+33 1 23 45 67 89',
-      email: 'contact@lepetitcafe.fr',
-      website: 'www.lepetitcafe.fr',
-      openingHours: 'Mon-Sun: 8:00-22:00',
-      image: 'https://example.com/cafe-image.jpg'
+      name: "Le Petit Café",
+      type: "Restaurant",
+      description: "Authentic French cuisine in a cozy atmosphere",
+      address: "123 Rue de Paris",
+      phone: "+33 1 23 45 67 89",
+      email: "contact@lepetitcafe.fr",
+      website: "www.lepetitcafe.fr",
+      openingHours: "Mon-Sun: 8:00-22:00",
+      image: "https://example.com/cafe-image.jpg",
     },
     {
       id: 2,
-      name: 'Tour Eiffel Hotel',
-      type: 'Hotel',
-      description: 'Luxury accommodation with Eiffel Tower views',
-      address: '45 Avenue des Champs-Élysées',
-      phone: '+33 1 98 76 54 32',
-      email: 'info@toureiffelhotel.fr',
-      website: 'www.toureiffelhotel.fr',
-      openingHours: '24/7',
-      image: 'https://example.com/hotel-image.jpg'
+      name: "Tour Eiffel Hotel",
+      type: "Hotel",
+      description: "Luxury accommodation with Eiffel Tower views",
+      address: "45 Avenue des Champs-Élysées",
+      phone: "+33 1 98 76 54 32",
+      email: "info@toureiffelhotel.fr",
+      website: "www.toureiffelhotel.fr",
+      openingHours: "24/7",
+      image: "https://example.com/hotel-image.jpg",
     },
   ];
+
+  const fetchCountryReviews = async () => {
+    try {
+      const response = await fetch(
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/GetCountryReviews?countryName=${encodeURIComponent(
+          countryName
+        )}`
+      );
+
+      const data = await response.json();
+      setReviews(data.reviews);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch reviews");
+      }
+
+      console.log("Reviews:", data.reviews);
+      return data.reviews;
+    } catch (err) {
+      console.error("Fetch error:", err);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    fetchCountryReviews();
+  }, [countryName]);
 
   const handleBusinessSubmit = (e) => {
     e.preventDefault();
@@ -345,12 +375,48 @@ const CountryPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (formData.review && rating > 0) {
-      setReviews([...reviews, { ...formData, rating }]);
-      setFormData({ review: '', tips: '' });
-      setRating(0);
+      const newReview = {
+        userName: user.name,
+        countryName: countryName,
+        rating: rating,
+        review: formData.review,
+        tips: formData.tips,
+      };
+
+      try {
+        const response = await fetch(
+          "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddCountryReview",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newReview),
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Failed to submit review:", data);
+          alert("Error: " + (data.message || "Failed to submit review"));
+          return;
+        }
+
+        // Update frontend state
+        setReviews([...reviews, { ...formData, rating }]);
+        setFormData({ review: "", tips: "" });
+        setRating(0);
+
+        alert("Review submitted successfully!");
+      } catch (err) {
+        console.error("Error submitting review:", err);
+        alert("Error submitting review. Please try again.");
+      }
     }
   };
 
@@ -365,10 +431,10 @@ const CountryPage = () => {
   const countryData = {
     averageRating: 4.5,
     totalReviews: 128,
-    popularAttractions: ['Eiffel Tower', 'Louvre Museum', 'Notre-Dame'],
-    bestTimeToVisit: 'April - June',
-    currency: 'Euro (€)',
-    language: 'French',
+    popularAttractions: ["Eiffel Tower", "Louvre Museum", "Notre-Dame"],
+    bestTimeToVisit: "April - June",
+    currency: "Euro (€)",
+    language: "French",
   };
 
   return (
@@ -379,14 +445,14 @@ const CountryPage = () => {
       </Header>
 
       <ViewToggle>
-        <ToggleButton 
-          active={!isBusinessView} 
+        <ToggleButton
+          active={!isBusinessView}
           onClick={() => setIsBusinessView(false)}
         >
           Traveler View
         </ToggleButton>
-        <ToggleButton 
-          active={isBusinessView} 
+        <ToggleButton
+          active={isBusinessView}
           onClick={() => setIsBusinessView(true)}
         >
           Business Registration
@@ -460,7 +526,7 @@ const CountryPage = () => {
             </Section>
           </ContentGrid>
 
-          <Section style={{ marginTop: '2rem' }}>
+          <Section style={{ marginTop: "2rem" }}>
             <SectionTitle>Local Businesses</SectionTitle>
             <BusinessList>
               {businesses.map((business) => (
@@ -469,7 +535,9 @@ const CountryPage = () => {
                   <BusinessContent>
                     <BusinessName>{business.name}</BusinessName>
                     <BusinessType>{business.type}</BusinessType>
-                    <BusinessDescription>{business.description}</BusinessDescription>
+                    <BusinessDescription>
+                      {business.description}
+                    </BusinessDescription>
                     <BusinessContact>
                       <div>📍 {business.address}</div>
                       <div>📞 {business.phone}</div>
@@ -483,18 +551,22 @@ const CountryPage = () => {
             </BusinessList>
           </Section>
 
-          <Section style={{ marginTop: '2rem' }}>
+          <Section style={{ marginTop: "2rem" }}>
             <SectionTitle>Recent Reviews</SectionTitle>
             <ReviewsList>
               {reviews.map((review, idx) => (
                 <ReviewItem key={idx}>
+                  <ReviewText>{review.userName}</ReviewText>
                   <ReviewRating>
-                    {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                    {"★".repeat(review.rating)}
+                    {"☆".repeat(5 - review.rating)}
                   </ReviewRating>
                   <ReviewText>{review.review}</ReviewText>
                   {review.tips && (
                     <>
-                      <InfoTitle style={{ marginTop: '1rem' }}>Travel Tips</InfoTitle>
+                      <InfoTitle style={{ marginTop: "1rem" }}>
+                        Travel Tips
+                      </InfoTitle>
                       <ReviewText>{review.tips}</ReviewText>
                     </>
                   )}
@@ -507,8 +579,9 @@ const CountryPage = () => {
         // Business registration view
         <Section>
           <SectionTitle>Register Your Business</SectionTitle>
-          <Subtitle style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            List your business in {countryName} and reach travelers from around the world
+          <Subtitle style={{ textAlign: "center", marginBottom: "2rem" }}>
+            List your business in {countryName} and reach travelers from around
+            the world
           </Subtitle>
           <BusinessForm onSubmit={handleBusinessSubmit}>
             <FormGroup>

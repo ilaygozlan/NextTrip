@@ -35,8 +35,8 @@ const MapComponent = (props) => {
   const markAsVisited = async () => {
     const code = selected.geo.id;
     const countryName = selected.geo.properties.name;
-   if (!visitedCountries?.includes(code)) {
-      setVisitedCountries([...visitedCountries, code]);
+   if (!visitedCountries?.includes(countryName)) {
+      setVisitedCountries([...visitedCountries, countryName]);
       try {
         const response = await fetch("https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCounrty", {
           method: "POST",
