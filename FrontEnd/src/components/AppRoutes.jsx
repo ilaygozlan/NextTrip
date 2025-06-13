@@ -56,7 +56,53 @@ const AppRoutes = () => {
     );
     const code = urlParams.get("code");
 
-    if (code) {
+    if (localStorage.getItem("id_token")) {
+
+      setIsAuthenticated(true);
+      const id_token = localStorage.getItem("id_token");
+
+      // Decode token to get name & email
+      const base64Url = id_token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      const decoded = JSON.parse(jsonPayload);
+
+      const fetchUserDetails = async () => {
+        try {
+          const idToken = localStorage.getItem("id_token");
+
+          const response = await fetch(
+            "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/GetUserData",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ email: decoded.email }),
+            }
+          );
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+          const userData = await response.json();
+          console.log("User from Lambda:", userData);
+          setUser(userData);
+        } catch (err) {
+          console.error("Error fetching user details from Lambda:", err);
+          localStorage.removeItem("id_token");
+          localStorage.removeItem("access_token");
+        }
+      };
+      fetchUserDetails();
+    }
+
+    if (code && !localStorage.getItem("id_token")) {
       const exchangeCodeForTokens = async () => {
         try {
           const getTokenUrl = `${config.domain}/oauth2/token`;
@@ -136,7 +182,7 @@ const AppRoutes = () => {
     }
   }, []);
 
-  if (isAuthenticated && !user?.userType) {
+  if (isAuthenticated && !user?.Email) {
     return (
       <Overlay>
         <Spinner />
@@ -146,7 +192,7 @@ const AppRoutes = () => {
 
   return (
     <>
-      {isAuthenticated && user?.userType && <Navbar />}
+      {isAuthenticated && user?.userType && <Navbar setAuthentication={setIsAuthenticated}/>}
       <main style={{ minHeight: "calc(100vh - 64px)", padding: "2rem 0" }}>
         <Routes>
           {isAuthenticated ? (
@@ -163,7 +209,6 @@ const AppRoutes = () => {
                   element={<Home userCountries={user.visitedCountries} />}
                 />
                 <Route path="/my-trips" element={<MyTrips />} />
-                <Route path="/rate-country" element={<RateCountry />} />
                 <Route path="/country/:countryName" element={<CountryPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </>

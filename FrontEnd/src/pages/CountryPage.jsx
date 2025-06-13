@@ -290,6 +290,7 @@ const CountryPage = () => {
   const { countryName } = useParams();
   const { user } = useUser();
   const [isBusinessView, setIsBusinessView] = useState(false);
+  const [businesses, setBusinesses] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [formData, setFormData] = useState({
     review: "",
@@ -307,33 +308,6 @@ const CountryPage = () => {
     openingHours: "",
   });
 
-  // Sample business data
-  const businesses = [
-    {
-      id: 1,
-      name: "Le Petit Café",
-      type: "Restaurant",
-      description: "Authentic French cuisine in a cozy atmosphere",
-      address: "123 Rue de Paris",
-      phone: "+33 1 23 45 67 89",
-      email: "contact@lepetitcafe.fr",
-      website: "www.lepetitcafe.fr",
-      openingHours: "Mon-Sun: 8:00-22:00",
-      image: "https://example.com/cafe-image.jpg",
-    },
-    {
-      id: 2,
-      name: "Tour Eiffel Hotel",
-      type: "Hotel",
-      description: "Luxury accommodation with Eiffel Tower views",
-      address: "45 Avenue des Champs-Élysées",
-      phone: "+33 1 98 76 54 32",
-      email: "info@toureiffelhotel.fr",
-      website: "www.toureiffelhotel.fr",
-      openingHours: "24/7",
-      image: "https://example.com/hotel-image.jpg",
-    },
-  ];
 
   const fetchCountryReviews = async () => {
     try {
@@ -344,7 +318,7 @@ const CountryPage = () => {
       );
 
       const data = await response.json();
-      setReviews(data.reviews);
+      setReviews(data.reviews || []);
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to fetch reviews");
@@ -360,13 +334,8 @@ const CountryPage = () => {
 
   useEffect(() => {
     fetchCountryReviews();
+    setIsBusinessView(user.userType === "business");
   }, [countryName]);
-
-  const handleBusinessSubmit = (e) => {
-    e.preventDefault();
-    // Handle business form submission
-    console.log(businessFormData);
-  };
 
   const handleBusinessChange = (e) => {
     setBusinessFormData({
@@ -437,27 +406,90 @@ const CountryPage = () => {
     language: "French",
   };
 
+  const handleBusinessSubmit = async (e) => {
+    e.preventDefault();
+
+    const newBusiness = {
+      ...businessFormData,
+      submittedAt: new Date().toISOString(),
+    };
+
+    const payload = {
+      countryName,
+      business: {
+        ...businessFormData,
+        submittedAt: new Date().toISOString(),
+      },
+    };
+
+    try {
+      const response = await fetch(
+        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddBusinessToCountry",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert("Failed to register business: " + data.message);
+        return;
+      }
+
+      alert("Business registered successfully!");
+      setBusinesses((prev) => [...prev, newBusiness]);
+
+      // Reset form:
+      setBusinessFormData({
+        name: "",
+        type: "",
+        description: "",
+        address: "",
+        phone: "",
+        email: "",
+        website: "",
+        openingHours: "",
+      });
+    } catch (err) {
+      console.error("Submission error:", err);
+      alert("Something went wrong. Please try again.");
+    }
+  };
+
+  const getCountryBusinesses = async (countryName) => {
+    try {
+      const response = await fetch(
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/GetCountryBusinesses?countryName=${encodeURIComponent(
+          countryName
+        )}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch businesses");
+      }
+
+      setBusinesses(data.businesses);
+    } catch (err) {
+      console.error("Fetch businesses error:", err);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    getCountryBusinesses(countryName);
+  }, [countryName]);
+
   return (
     <Container>
       <Header>
         <Title>{countryName}</Title>
         <Subtitle>Discover the beauty and culture of {countryName}</Subtitle>
       </Header>
-
-      <ViewToggle>
-        <ToggleButton
-          active={!isBusinessView}
-          onClick={() => setIsBusinessView(false)}
-        >
-          Traveler View
-        </ToggleButton>
-        <ToggleButton
-          active={isBusinessView}
-          onClick={() => setIsBusinessView(true)}
-        >
-          Business Registration
-        </ToggleButton>
-      </ViewToggle>
 
       {!isBusinessView ? (
         // Regular user view
@@ -577,107 +609,134 @@ const CountryPage = () => {
         </>
       ) : (
         // Business registration view
-        <Section>
-          <SectionTitle>Register Your Business</SectionTitle>
-          <Subtitle style={{ textAlign: "center", marginBottom: "2rem" }}>
-            List your business in {countryName} and reach travelers from around
-            the world
-          </Subtitle>
-          <BusinessForm onSubmit={handleBusinessSubmit}>
-            <FormGroup>
-              <Label>Business Name</Label>
-              <Input
-                type="text"
-                name="name"
-                value={businessFormData.name}
-                onChange={handleBusinessChange}
-                placeholder="Enter your business name"
-                required
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label>Business Type</Label>
-              <Select
-                name="type"
-                value={businessFormData.type}
-                onChange={handleBusinessChange}
-                required
-              >
-                <option value="">Select business type</option>
-                <option value="Restaurant">Restaurant</option>
-                <option value="Hotel">Hotel</option>
-                <option value="Tour">Tour</option>
-                <option value="Shop">Shop</option>
-                <option value="Other">Other</option>
-              </Select>
-            </FormGroup>
-            <FormGroup>
-              <Label>Description</Label>
-              <TextArea
-                name="description"
-                value={businessFormData.description}
-                onChange={handleBusinessChange}
-                placeholder="Describe your business..."
-                required
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label>Address</Label>
-              <Input
-                type="text"
-                name="address"
-                value={businessFormData.address}
-                onChange={handleBusinessChange}
-                placeholder="Enter your business address"
-                required
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label>Phone Number</Label>
-              <Input
-                type="tel"
-                name="phone"
-                value={businessFormData.phone}
-                onChange={handleBusinessChange}
-                placeholder="Enter your phone number"
-                required
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label>Email</Label>
-              <Input
-                type="email"
-                name="email"
-                value={businessFormData.email}
-                onChange={handleBusinessChange}
-                placeholder="Enter your email"
-                required
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label>Website</Label>
-              <Input
-                type="url"
-                name="website"
-                value={businessFormData.website}
-                onChange={handleBusinessChange}
-                placeholder="Enter your website URL"
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label>Opening Hours</Label>
-              <Input
-                type="text"
-                name="openingHours"
-                value={businessFormData.openingHours}
-                onChange={handleBusinessChange}
-                placeholder="e.g., Mon-Fri: 9:00-18:00"
-                required
-              />
-            </FormGroup>
-            <Button type="submit">Register Business</Button>
-          </BusinessForm>
-        </Section>
+        <>
+          <Section>
+            <SectionTitle>Register Your Business</SectionTitle>
+            <Subtitle style={{ textAlign: "center", marginBottom: "2rem" }}>
+              List your business in {countryName} and reach travelers from
+              around the world
+            </Subtitle>
+            <BusinessForm onSubmit={handleBusinessSubmit}>
+              <FormGroup>
+                <Label>Business Name</Label>
+                <Input
+                  type="text"
+                  name="name"
+                  value={businessFormData.name}
+                  onChange={handleBusinessChange}
+                  placeholder="Enter your business name"
+                  required
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label>Business Type</Label>
+                <Select
+                  name="type"
+                  value={businessFormData.type}
+                  onChange={handleBusinessChange}
+                  required
+                >
+                  <option value="">Select business type</option>
+                  <option value="Restaurant">Restaurant</option>
+                  <option value="Hotel">Hotel</option>
+                  <option value="Tour">Tour</option>
+                  <option value="Shop">Shop</option>
+                  <option value="Other">Other</option>
+                </Select>
+              </FormGroup>
+              <FormGroup>
+                <Label>Description</Label>
+                <TextArea
+                  name="description"
+                  value={businessFormData.description}
+                  onChange={handleBusinessChange}
+                  placeholder="Describe your business..."
+                  required
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label>Address</Label>
+                <Input
+                  type="text"
+                  name="address"
+                  value={businessFormData.address}
+                  onChange={handleBusinessChange}
+                  placeholder="Enter your business address"
+                  required
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label>Phone Number</Label>
+                <Input
+                  type="tel"
+                  name="phone"
+                  value={businessFormData.phone}
+                  onChange={handleBusinessChange}
+                  placeholder="Enter your phone number"
+                  required
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  name="email"
+                  value={businessFormData.email}
+                  onChange={handleBusinessChange}
+                  placeholder="Enter your email"
+                  required
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label>Website</Label>
+                <Input
+                  type="url"
+                  name="website"
+                  value={businessFormData.website}
+                  onChange={handleBusinessChange}
+                  placeholder="Enter your website URL"
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label>Opening Hours</Label>
+                <Input
+                  type="text"
+                  name="openingHours"
+                  value={businessFormData.openingHours}
+                  onChange={handleBusinessChange}
+                  placeholder="e.g., Mon-Fri: 9:00-18:00"
+                  required
+                />
+              </FormGroup>
+              <Button type="submit">Register Business</Button>
+            </BusinessForm>
+          </Section>
+
+          <Section style={{ marginTop: "2rem" }}>
+            <SectionTitle>Local Businesses </SectionTitle>
+            <BusinessList>
+              {businesses.map((business) => (
+                <BusinessCard key={business.id}>
+                  <BusinessImage image={business.image} />
+                  <BusinessContent>
+                    <BusinessName>{business.name}</BusinessName>
+                    <BusinessType>{business.type}</BusinessType>
+                    <BusinessDescription>
+                      {business.description}
+                    </BusinessDescription>
+                    <BusinessContact>
+                      <div>📍 {business.address}</div>
+                      <div>📞 {business.phone}</div>
+                      <div>✉️ {business.email}</div>
+                      <div>🌐 {business.website}</div>
+                      <div>🕒 {business.openingHours}</div>
+                    </BusinessContact>
+                  </BusinessContent>
+                </BusinessCard>
+              ))}
+            </BusinessList>
+          </Section>
+        </>
       )}
     </Container>
   );

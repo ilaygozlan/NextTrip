@@ -1,6 +1,8 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
+import React from "react";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../contexts/UserContext";
 
 const Nav = styled.nav`
   background: #ffffff;
@@ -60,7 +62,18 @@ const LogoutButton = styled.button`
   }
 `;
 
-function Navbar({ onLogout }) {
+function Navbar(props) {
+  const { setUser } = useUser();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("id_token");
+    localStorage.removeItem("access_token");
+    props.setAuthentication(false);
+    setUser(null);
+    navigate("/LandingPage");
+  };
+
   return (
     <Nav>
       <NavContainer>
@@ -68,8 +81,7 @@ function Navbar({ onLogout }) {
         <NavLinks>
           <NavLink to="/">Home</NavLink>
           <NavLink to="/my-trips">My Trips</NavLink>
-          <NavLink to="/rate-country">Rate a Country</NavLink>
-          <LogoutButton onClick={onLogout}>Logout</LogoutButton>
+          <LogoutButton onClick={()=>{handleLogout()}}>Logout</LogoutButton>
         </NavLinks>
       </NavContainer>
     </Nav>
