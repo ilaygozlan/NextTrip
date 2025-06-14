@@ -291,6 +291,7 @@ const CountryPage = () => {
   const { user } = useUser();
   const [isBusinessView, setIsBusinessView] = useState(false);
   const [businesses, setBusinesses] = useState([]);
+  const [imagePreview, setImagePreview] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [formData, setFormData] = useState({
     review: "",
@@ -306,8 +307,8 @@ const CountryPage = () => {
     email: "",
     website: "",
     openingHours: "",
+    image: null,
   });
-
 
   const fetchCountryReviews = async () => {
     try {
@@ -396,6 +397,22 @@ const CountryPage = () => {
     });
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBusinessFormData((prevData) => ({
+        ...prevData,
+        image: file,
+      }));
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // This would typically come from an API
   const countryData = {
     averageRating: 4.5,
@@ -409,20 +426,46 @@ const CountryPage = () => {
   const handleBusinessSubmit = async (e) => {
     e.preventDefault();
 
-    const newBusiness = {
-      ...businessFormData,
-      submittedAt: new Date().toISOString(),
-    };
-
-    const payload = {
-      countryName,
-      business: {
-        ...businessFormData,
-        submittedAt: new Date().toISOString(),
-      },
-    };
-
     try {
+      // Step 1: Upload image to S3
+      const uploadImageToS3 = async (file) => {
+        console.log(file.name);
+        const encodedName = encodeURIComponent(file.name);
+        const fileName = `${Date.now()}_${encodedName}`;
+        const res = await fetch(
+          `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/UploadImage?fileName=${fileName}`
+        );
+        const { uploadUrl, fileUrl } = await res.json();
+        console.log(uploadUrl);
+        await fetch(uploadUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type,
+          },
+          body: file,
+        });
+
+        return fileUrl;
+      };
+
+      let imageUrl = "";
+      if (businessFormData.image) {
+        imageUrl = await uploadImageToS3(businessFormData.image);
+        console.log(imageUrl);
+      }
+
+      // Step 2: Build and send payload
+      const newBusiness = {
+        ...businessFormData,
+        image: imageUrl,
+        submittedAt: new Date().toISOString(),
+      };
+
+      const payload = {
+        countryName,
+        business: newBusiness,
+      };
+
       const response = await fetch(
         "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddBusinessToCountry",
         {
@@ -442,7 +485,7 @@ const CountryPage = () => {
       alert("Business registered successfully!");
       setBusinesses((prev) => [...prev, newBusiness]);
 
-      // Reset form:
+      // Reset form and image
       setBusinessFormData({
         name: "",
         type: "",
@@ -452,7 +495,9 @@ const CountryPage = () => {
         email: "",
         website: "",
         openingHours: "",
+        image: null,
       });
+      setImagePreview(null);
     } catch (err) {
       console.error("Submission error:", err);
       alert("Something went wrong. Please try again.");
@@ -616,7 +661,30 @@ const CountryPage = () => {
               List your business in {countryName} and reach travelers from
               around the world
             </Subtitle>
+            {imagePreview && (
+              <div style={{ marginTop: "1rem", textAlign: "center" }}>
+                <img
+                  src={imagePreview}
+                  alt="Business preview"
+                  style={{
+                    maxWidth: "100%",
+                    height: "250px",
+                    borderRadius: "8px",
+                  }}
+                />
+              </div>
+            )}
             <BusinessForm onSubmit={handleBusinessSubmit}>
+              <FormGroup>
+                <Label>Business Image</Label>
+                <Input
+                  type="file"
+                  name="image"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  required
+                />
+              </FormGroup>
               <FormGroup>
                 <Label>Business Name</Label>
                 <Input

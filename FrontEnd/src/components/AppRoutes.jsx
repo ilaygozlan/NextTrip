@@ -55,6 +55,7 @@ const AppRoutes = () => {
       window.location.search || window.location.hash.split("?")[1]
     );
     const code = urlParams.get("code");
+    setIsAuthenticated(false);
 
     if (localStorage.getItem("id_token")) {
 
@@ -97,6 +98,8 @@ const AppRoutes = () => {
           console.error("Error fetching user details from Lambda:", err);
           localStorage.removeItem("id_token");
           localStorage.removeItem("access_token");
+          setIsAuthenticated(false);
+          setUser(null);
         }
       };
       fetchUserDetails();
