@@ -89,7 +89,7 @@ function MyTrips() {
   try {
     const res = await fetch(`https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/getUserTrips?email=${email}`);
     const data = await res.json();
-
+    console.log(data);
     if (!res.ok) {
       console.error("Failed to fetch trips:", data);
       return;
@@ -101,7 +101,7 @@ function MyTrips() {
     console.error("Error:", err);
   }
 };
-
+fetchUserTrips();
 
 
   const handleAddTrip = (newTrip) => {

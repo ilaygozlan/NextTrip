@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
+import React, { useState } from "react";
+import styled from "styled-components";
+import geoData from "../features.json";
 
 const FormContainer = styled.div`
   max-width: 700px;
@@ -7,7 +8,7 @@ const FormContainer = styled.div`
   padding: 2rem;
   background: #f9f9f9;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 `;
 
 const FormTitle = styled.h2`
@@ -67,15 +68,35 @@ const Button = styled.button`
 
 const AddTripForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
-    country: '',
-    startDate: '',
-    endDate: '',
-    review: '',
-    tip: '',
-    rating: '',
-    highlight: '',
-    travelType: 'Solo',
+    country: "",
+    startDate: "",
+    endDate: "",
+    review: "",
+    tip: "",
+    rating: "",
+    highlight: "",
+    travelType: "Solo",
   });
+
+  const [suggestions, setSuggestions] = useState([]);
+  const countryNames = geoData.features.map(
+    (feature) => feature.properties.name
+  );
+  
+  const handleCountryChange = (e) => {
+    const value = e.target.value;
+    setFormData((prev) => ({ ...prev, country: value }));
+
+    const matches = countryNames
+      .filter((name) => name.toLowerCase().startsWith(value.toLowerCase()))
+      .slice(0, 5);
+    setSuggestions(matches);
+  };
+
+  const selectSuggestion = (name) => {
+    setFormData((prev) => ({ ...prev, country: name }));
+    setSuggestions([]);
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -89,14 +110,14 @@ const AddTripForm = ({ onSubmit }) => {
     if (onSubmit) onSubmit(formData);
     alert("Trip added successfully!");
     setFormData({
-      country: '',
-      startDate: '',
-      endDate: '',
-      review: '',
-      tip: '',
-      rating: '',
-      highlight: '',
-      travelType: 'Solo',
+      country: "",
+      startDate: "",
+      endDate: "",
+      review: "",
+      tip: "",
+      rating: "",
+      highlight: "",
+      travelType: "Solo",
     });
   };
 
@@ -106,13 +127,23 @@ const AddTripForm = ({ onSubmit }) => {
         <FormTitle>Add New Trip</FormTitle>
 
         <FormGroup>
-          <Label>Country</Label>
+          <label>Country</label>
           <Input
             name="country"
             value={formData.country}
-            onChange={handleChange}
-            required
+            onChange={handleCountryChange}
+            autoComplete="off"
+            placeholder="Start typing a country..."
           />
+          {suggestions.length > 0 && (
+            <SuggestionList>
+              {suggestions.map((s, idx) => (
+                <SuggestionItem key={idx} onClick={() => selectSuggestion(s)}>
+                  {s}
+                </SuggestionItem>
+              ))}
+            </SuggestionList>
+          )}
         </FormGroup>
 
         <FormGroup>
