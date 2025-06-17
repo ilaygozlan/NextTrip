@@ -10,18 +10,10 @@ import geoData from "../features.json";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 
-const MapComponent = (props) => {
+const MapComponent = ({visitedCountries, setVisitedCountries}) => {
   const [selected, setSelected] = useState(null);
   const { user } = useUser();
-  const [visitedCountries, setVisitedCountries] = useState([]);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user?.visitedCountries) {
-      setVisitedCountries(user.visitedCountries);
-      console.log(user);
-    }
-  }, [user]);
 
   const handleClick = (geo) => {
     if (selected?.geo?.id === geo.id) {

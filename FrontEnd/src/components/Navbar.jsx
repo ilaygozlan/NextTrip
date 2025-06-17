@@ -63,7 +63,7 @@ const LogoutButton = styled.button`
 `;
 
 function Navbar(props) {
-  const { setUser } = useUser();
+  const { user, setUser } = useUser();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -80,8 +80,10 @@ function Navbar(props) {
         <Logo to="/">NextTrip</Logo>
         <NavLinks>
           <NavLink to="/">Home</NavLink>
-          <NavLink to="/my-trips">My Trips</NavLink>
-          <LogoutButton onClick={()=>{handleLogout()}}>Logout</LogoutButton>
+          {user.userType !== "business" && (
+            <NavLink to="/my-trips">My Trips</NavLink>
+          )}
+          <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
         </NavLinks>
       </NavContainer>
     </Nav>

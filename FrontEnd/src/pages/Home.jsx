@@ -46,7 +46,7 @@ function Home(props) {
         </Subtitle>
       </Hero>
       <MapContainer>
-        <MapComponent userCountries={props.userCountries}/>
+        <MapComponent visitedCountries={props.visitedCountries} setVisitedCountries={props.setVisitedCountries}/>
       </MapContainer>
     </>
   );
