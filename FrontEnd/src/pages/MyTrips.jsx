@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import AddTripForm from './AddTripForm'; 
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import AddTripForm from "./AddTripForm";
+import { useUser } from "../contexts/UserContext";
 
 const Container = styled.div`
   max-width: 1200px;
@@ -84,30 +85,71 @@ const Rating = styled.div`
 function MyTrips() {
   const [showForm, setShowForm] = useState(false);
   const [trips, setTrips] = useState([]);
+  const { user } = useUser();
 
   const fetchUserTrips = async (email) => {
-  try {
-    const res = await fetch(`https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/getUserTrips?email=${email}`);
-    const data = await res.json();
-    console.log(data);
-    if (!res.ok) {
-      console.error("Failed to fetch trips:", data);
+    try {
+      const res = await fetch(
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/getUserTrips?email=${email}`
+      );
+      const data = await res.json();
+      setTrips(data);
+      if (!res.ok) {
+        console.error("Failed to fetch trips:", data);
+        return;
+      }
+
+      console.log("User trips:", data);
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  };
+  useEffect(() => {
+    if (user?.Email) {
+      fetchUserTrips(user.Email);
+    }
+  }, [user]);
+
+  const handleAddTrip = async (newTrip) => {
+    if (!user?.Email) {
+      alert("User not logged in");
       return;
     }
 
-    console.log("User trips:", data);
-   
-  } catch (err) {
-    console.error("Error:", err);
-  }
-};
-fetchUserTrips();
+    const tripWithEmail = {
+      ...newTrip,
+      userEmail: user.Email, // Attach user's email
+    };
 
+    try {
+      const response = await fetch(
+        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/PostUserTrip",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(tripWithEmail),
+        }
+      );
 
-  const handleAddTrip = (newTrip) => {
-    console.log('Trip added:', newTrip);
-    setShowForm(false);
-    // To fully implement, update the trip list dynamically from state
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to add trip:", errorData);
+        alert("Failed to save trip. Please try again.");
+        return;
+      }
+
+      const savedTrip = await response.json();
+      console.log("Trip added:", savedTrip);
+
+      // Update state
+      setTrips((prev) => [...prev, savedTrip]);
+      setShowForm(false);
+    } catch (err) {
+      console.error("Error adding trip:", err);
+      alert("An error occurred while saving the trip.");
+    }
   };
 
   return (
@@ -116,7 +158,7 @@ fetchUserTrips();
         <Title>My Trips</Title>
         <Subtitle>View and manage your travel experiences and ratings</Subtitle>
         <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Close Form' : 'Add New Trip'}
+          {showForm ? "Close Form" : "Add New Trip"}
         </Button>
       </Header>
 
@@ -126,14 +168,33 @@ fetchUserTrips();
         {trips.map((trip, index) => (
           <TripCard key={index}>
             <CountryName>{trip.country}</CountryName>
+
             <TripDetails>
-              <div>Date: {trip.date}</div>
-              <div>{trip.notes}</div>
+              <div>
+                <strong>Travel Type:</strong> {trip.travelType}
+              </div>
+              <div>
+                <strong>Dates:</strong> {trip.startDate} - {trip.endDate}
+              </div>
+              <div>
+                <strong>Rating:</strong> <Rating>★ {trip.rating}/5</Rating>
+              </div>
+              {trip.highlight && (
+                <div>
+                  <strong>Highlight:</strong> {trip.highlight}
+                </div>
+              )}
+              {trip.review && (
+                <div>
+                  <strong>Review:</strong> {trip.review}
+                </div>
+              )}
+              {trip.tip && (
+                <div>
+                  <strong>Tip:</strong> {trip.tip}
+                </div>
+              )}
             </TripDetails>
-            <Rating>
-              <span>★</span>
-              <span>{trip.rating}/5</span>
-            </Rating>
           </TripCard>
         ))}
       </TripGrid>

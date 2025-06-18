@@ -65,6 +65,48 @@ const Button = styled.button`
     background-color: #2980b9;
   }
 `;
+const SuggestionList = styled.ul`
+  list-style: none;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  padding: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+`;
+
+const SuggestionItem = styled.li`
+  padding: 0.6rem;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+
+  &:hover {
+    background-color: #f1f1f1;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+const Star = styled.span`
+  font-size: 1.5rem;
+  color: ${(props) => (props.active ? "#f1c40f" : "#ddd")};
+  cursor: pointer;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #f1c40f;
+  }
+`;
+const RatingContainer = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+`;
 
 const AddTripForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -79,10 +121,11 @@ const AddTripForm = ({ onSubmit }) => {
   });
 
   const [suggestions, setSuggestions] = useState([]);
-  const countryNames = geoData.features.map(
-    (feature) => feature.properties.name
+  const [rating, setRating] = useState(0);
+  const countryNames = geoData.objects.world.geometries.map(
+    (geo) => geo.properties.name
   );
-  
+
   const handleCountryChange = (e) => {
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, country: value }));
@@ -107,7 +150,14 @@ const AddTripForm = ({ onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmit) onSubmit(formData);
+    if (onSubmit) {
+      const fullFormData = {
+        ...formData,
+        rating: rating, 
+      };
+      onSubmit(fullFormData);
+    }
+
     alert("Trip added successfully!");
     setFormData({
       country: "",
@@ -115,7 +165,7 @@ const AddTripForm = ({ onSubmit }) => {
       endDate: "",
       review: "",
       tip: "",
-      rating: "",
+      rating: 0,
       highlight: "",
       travelType: "Solo",
     });
@@ -187,16 +237,18 @@ const AddTripForm = ({ onSubmit }) => {
         </FormGroup>
 
         <FormGroup>
-          <Label>Rating (0–5)</Label>
-          <Input
-            name="rating"
-            type="number"
-            min="0"
-            max="5"
-            step="0.1"
-            value={formData.rating}
-            onChange={handleChange}
-          />
+          <Label>Rating</Label>
+          <RatingContainer>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                active={star <= rating}
+                onClick={() => setRating(star)}
+              >
+                ★
+              </Star>
+            ))}
+          </RatingContainer>
         </FormGroup>
 
         <FormGroup>
