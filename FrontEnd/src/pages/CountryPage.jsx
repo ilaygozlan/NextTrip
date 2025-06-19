@@ -243,6 +243,7 @@ const BusinessCard = styled.div`
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
+  position: relative;
 
   &:hover {
     transform: translateY(-5px);
@@ -286,12 +287,29 @@ const BusinessContact = styled.div`
   margin-top: 1rem;
 `;
 
+const LikeButton = styled.button`
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: ${(props) => (props.liked ? "#e74c3c" : "#ccc")};
+  cursor: pointer;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #e74c3c;
+  }
+`;
+
 const CountryPage = () => {
   const { countryName } = useParams();
   const { user } = useUser();
   const [isBusinessView, setIsBusinessView] = useState(false);
   const [businesses, setBusinesses] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
+  const [likedBusinesses, setLikedBusinesses] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [formData, setFormData] = useState({
     review: "",
@@ -336,6 +354,7 @@ const CountryPage = () => {
   useEffect(() => {
     fetchCountryReviews();
     setIsBusinessView(user.userType === "business");
+    if (user?.Email) fetchLikedBusinesses();
   }, [countryName]);
 
   const handleBusinessChange = (e) => {
@@ -529,6 +548,48 @@ const CountryPage = () => {
     getCountryBusinesses(countryName);
   }, [countryName]);
 
+  const fetchLikedBusinesses = async () => {
+    try {
+      const res = await fetch(
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/GetUserLikedBusinesses?email=${user.Email}`
+      );
+      const data = await res.json();
+      if (Array.isArray(data.likes)) {
+        setLikedBusinesses(data.likes);
+      }
+    } catch (err) {
+      console.error("Error fetching likes:", err);
+    }
+  };
+
+  const toggleLike = async (businessId) => {
+    try {
+      const isLiked = likedBusinesses.includes(businessId);
+      const method = isLiked ? "DELETE" : "POST";
+      const endpoint = isLiked ? "RemoveBusinessLike" : "LikeBusiness";
+
+      const res = await fetch(
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/${endpoint}`,
+        {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userEmail: user.Email, businessId: businessId, countryName: countryName }),
+        }
+      );
+      console.log("Parsed data:",  user.Email , businessId, countryName );
+
+      if (res.ok) {
+        setLikedBusinesses((prev) =>
+          isLiked
+            ? prev.filter((id) => id !== businessId)
+            : [...prev, businessId]
+        );
+      }
+    } catch (err) {
+      console.error("Like toggle error:", err);
+    }
+  };
+
   return (
     <Container>
       <Header>
@@ -611,6 +672,14 @@ const CountryPage = () => {
                   <BusinessImage image={business.image} />
                   <BusinessContent>
                     <BusinessName>{business.name}</BusinessName>
+                    {!isBusinessView && (
+                      <LikeButton
+                        liked={likedBusinesses.includes(business.id)}
+                        onClick={() => toggleLike(business.id)}
+                      >
+                        ♥
+                      </LikeButton>
+                    )}
                     <BusinessType>{business.type}</BusinessType>
                     <BusinessDescription>
                       {business.description}

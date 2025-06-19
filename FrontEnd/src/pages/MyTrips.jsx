@@ -44,29 +44,32 @@ const Button = styled.button`
   }
 `;
 
+const DeleteButton = styled.button`
+  background: transparent;
+  color: #e74c3c;
+  border: none;
+  font-size: 1.2rem;
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  cursor: pointer;
+`;
+
 const TripGrid = styled.div`
   display: flex;
   overflow-x: auto;
-  gap: 1.5rem;
+  gap: 2rem;
+  margin-top: 2rem;
   padding-bottom: 1rem;
-  scroll-snap-type: x mandatory;
-
-  &::-webkit-scrollbar {
-    height: 8px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #ccc;
-    border-radius: 4px;
-  }
 `;
 
 const TripCard = styled.div`
-  min-width: 320px;
+  position: relative;
+  flex: 0 0 300px;
   background: white;
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  scroll-snap-align: start;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
@@ -92,6 +95,30 @@ const Rating = styled.div`
   gap: 0.5rem;
   color: #f1c40f;
   font-weight: 500;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
 `;
 
 function MyTrips() {
@@ -130,7 +157,7 @@ function MyTrips() {
     const tripWithEmail = {
       ...newTrip,
       userEmail: user.Email,
-      tripId: Date.now()
+      tripId: Date.now(),
     };
 
     try {
@@ -200,6 +227,34 @@ function MyTrips() {
     }
   };
 
+  const handleDeleteTrip = async (index) => {
+    const confirmed = window.confirm("Are you sure you want to delete this trip?");
+    if (!confirmed) return;
+
+    const tripId = trips[index].tripId;
+
+    try {
+      const res = await fetch(
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/DeleteUserTrip`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userEmail: user.Email, tripId }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Delete failed");
+
+      const newTrips = trips.filter((_, i) => i !== index);
+      setTrips(newTrips);
+    } catch (err) {
+      console.error("Error deleting trip:", err);
+      alert("Failed to delete trip.");
+    }
+  };
+
   return (
     <Container>
       <Header>
@@ -210,29 +265,32 @@ function MyTrips() {
       <TripGrid>
         {trips.map((trip, index) => (
           <TripCard key={index}>
-            {editIndex === index ? (
-              <AddTripForm
-                initialData={trip}
-                onCancel={handleCancelEdit}
-                onSubmit={(updated) => handleSaveEdit(index, updated)}
-              />
-            ) : (
-              <>
-                <CountryName>{trip.country}</CountryName>
-                <TripDetails>
-                  <div><strong>Travel Type:</strong> {trip.travelType}</div>
-                  <div><strong>Dates:</strong> {trip.startDate} - {trip.endDate}</div>
-                  <div><strong>Rating:</strong> <Rating>★ {trip.rating}/5</Rating></div>
-                  {trip.highlight && <div><strong>Highlight:</strong> {trip.highlight}</div>}
-                  {trip.review && <div><strong>Review:</strong> {trip.review}</div>}
-                  {trip.tip && <div><strong>Tip:</strong> {trip.tip}</div>}
-                </TripDetails>
-                <Button onClick={() => handleEditClick(index)}>Edit Trip ✏️</Button>
-              </>
-            )}
+            <DeleteButton onClick={() => handleDeleteTrip(index)}>×</DeleteButton>
+            <CountryName>{trip.country}</CountryName>
+            <TripDetails>
+              <div><strong>Travel Type:</strong> {trip.travelType}</div>
+              <div><strong>Dates:</strong> {trip.startDate} - {trip.endDate}</div>
+              <div><strong>Rating:</strong> <Rating>★ {trip.rating}/5</Rating></div>
+              {trip.highlight && <div><strong>Highlight:</strong> {trip.highlight}</div>}
+              {trip.review && <div><strong>Review:</strong> {trip.review}</div>}
+              {trip.tip && <div><strong>Tip:</strong> {trip.tip}</div>}
+            </TripDetails>
+            <Button onClick={() => handleEditClick(index)}>Edit Trip ✏️</Button>
           </TripCard>
         ))}
       </TripGrid>
+
+      {editIndex !== null && (
+        <ModalOverlay>
+          <ModalContent>
+            <AddTripForm
+              initialData={trips[editIndex]}
+              onCancel={handleCancelEdit}
+              onSubmit={(updated) => handleSaveEdit(editIndex, updated)}
+            />
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Container>
   );
 }
