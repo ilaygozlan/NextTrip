@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   ComposableMap,
   Geographies,
@@ -9,9 +9,12 @@ import { geoCentroid } from "d3-geo";
 import geoData from "../features.json";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
+import AddTripForm from "../pages/AddTripForm";
 
-const MapComponent = ({visitedCountries, setVisitedCountries}) => {
+const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   const [selected, setSelected] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [pendingCountry, setPendingCountry] = useState(null);
   const { user } = useUser();
   const navigate = useNavigate();
 
@@ -24,36 +27,64 @@ const MapComponent = ({visitedCountries, setVisitedCountries}) => {
     }
   };
 
-  const markAsVisited = async () => {
-    const code = selected.geo.id;
+  const promptTripForm = () => {
     const countryName = selected.geo.properties.name;
-   if (!visitedCountries?.includes(countryName)) {
-      setVisitedCountries([...visitedCountries, countryName]);
-      try {
-        const response = await fetch("https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCounrty", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: user?.Email,
-            newCountry: countryName,
-          }),
-        });
+    const countryId = selected.geo.id;
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          console.error("Failed to update country:", data);
-          alert("Error: " + data.message);
-        } else {
-          console.log("Successfully updated:", data);
-        }
-      } catch (err) {
-        console.error("Request failed:", err);
-        alert("An error occurred while marking the country.");
-      }
+    if (!visitedCountries.includes(countryName)) {
+      setPendingCountry({ name: countryName, id: countryId });
+      setShowForm(true);
     }
+  };
+
+  const handleAddTrip = async (tripData) => {
+    const fullTrip = {
+      ...tripData,
+      userEmail: user.Email,
+      country: pendingCountry.name,
+      tripId: Date.now(),
+    };
+
+    try {
+      const response = await fetch(
+        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/PostUserTrip",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(fullTrip),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.message);
+
+      setVisitedCountries((prev) => [...prev, pendingCountry.name]);
+
+      await fetch(
+        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCounrty",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user.Email,
+            newCountry: pendingCountry.name,
+          }),
+        }
+      );
+
+      setShowForm(false);
+      setPendingCountry(null);
+      setSelected(null);
+    } catch (err) {
+      console.error("Failed to save trip:", err);
+      alert("Could not save trip. Please try again.");
+    }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setPendingCountry(null);
   };
 
   const goToCountryPage = () => {
@@ -62,7 +93,9 @@ const MapComponent = ({visitedCountries, setVisitedCountries}) => {
 
   if (!user?.Email) {
     return (
-      <div style={{ textAlign: "center", paddingTop: "40px", fontSize: "18px" }}>
+      <div
+        style={{ textAlign: "center", paddingTop: "40px", fontSize: "18px" }}
+      >
         Loading user data...
       </div>
     );
@@ -136,7 +169,7 @@ const MapComponent = ({visitedCountries, setVisitedCountries}) => {
 
                 {!visitedCountries.includes(selected.geo.properties.name) ? (
                   <button
-                    onClick={markAsVisited}
+                    onClick={promptTripForm}
                     style={{
                       marginTop: "6px",
                       fontSize: "11px",
@@ -181,6 +214,45 @@ const MapComponent = ({visitedCountries, setVisitedCountries}) => {
           </Marker>
         )}
       </ComposableMap>
+
+      {/* Trip Form Popup */}
+      {showForm && pendingCountry && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "8px",
+              padding: "2rem",
+              maxWidth: "700px",
+              width: "90%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            <h3 style={{ marginBottom: "1rem" }}>
+              Add a Trip to {pendingCountry.name}
+            </h3>
+            <AddTripForm
+              initialData={{ country: pendingCountry.name }}
+              onSubmit={handleAddTrip}
+              onCancel={handleCancel}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -36,6 +36,7 @@ const Button = styled.button`
   font-weight: bold;
   cursor: pointer;
   margin-top: 1rem;
+  margin-right: 0.5rem;
   transition: background 0.3s;
 
   &:hover {
@@ -44,17 +45,28 @@ const Button = styled.button`
 `;
 
 const TripGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  display: flex;
+  overflow-x: auto;
+  gap: 1.5rem;
+  padding-bottom: 1rem;
+  scroll-snap-type: x mandatory;
+
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+  }
 `;
 
 const TripCard = styled.div`
+  min-width: 320px;
   background: white;
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  scroll-snap-align: start;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
@@ -85,6 +97,7 @@ const Rating = styled.div`
 function MyTrips() {
   const [showForm, setShowForm] = useState(false);
   const [trips, setTrips] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
   const { user } = useUser();
 
   const fetchUserTrips = async (email) => {
@@ -96,14 +109,12 @@ function MyTrips() {
       setTrips(data);
       if (!res.ok) {
         console.error("Failed to fetch trips:", data);
-        return;
       }
-
-      console.log("User trips:", data);
     } catch (err) {
       console.error("Error:", err);
     }
   };
+
   useEffect(() => {
     if (user?.Email) {
       fetchUserTrips(user.Email);
@@ -118,7 +129,8 @@ function MyTrips() {
 
     const tripWithEmail = {
       ...newTrip,
-      userEmail: user.Email, // Attach user's email
+      userEmail: user.Email,
+      tripId: Date.now()
     };
 
     try {
@@ -141,14 +153,50 @@ function MyTrips() {
       }
 
       const savedTrip = await response.json();
-      console.log("Trip added:", savedTrip);
-
-      // Update state
-      setTrips((prev) => [...prev, savedTrip]);
+      setTrips((prev) => [...prev, savedTrip.trip]);
       setShowForm(false);
     } catch (err) {
       console.error("Error adding trip:", err);
       alert("An error occurred while saving the trip.");
+    }
+  };
+
+  const handleEditClick = (index) => {
+    setEditIndex(index);
+  };
+
+  const handleCancelEdit = () => {
+    setEditIndex(null);
+  };
+
+  const handleSaveEdit = async (index, updatedTrip) => {
+    try {
+      const fullTrip = {
+        ...updatedTrip,
+        userEmail: user.Email,
+        tripId: trips[index].tripId,
+      };
+
+      const res = await fetch(
+        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/UpdateUserTrip",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(fullTrip),
+        }
+      );
+
+      if (!res.ok) throw new Error("Update failed");
+
+      const newTrips = [...trips];
+      newTrips[index] = fullTrip;
+      setTrips(newTrips);
+      setEditIndex(null);
+    } catch (err) {
+      console.error("Error updating trip:", err);
+      alert("Failed to update trip.");
     }
   };
 
@@ -157,44 +205,31 @@ function MyTrips() {
       <Header>
         <Title>My Trips</Title>
         <Subtitle>View and manage your travel experiences and ratings</Subtitle>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Close Form" : "Add New Trip"}
-        </Button>
       </Header>
-
-      {showForm && <AddTripForm onSubmit={handleAddTrip} />}
 
       <TripGrid>
         {trips.map((trip, index) => (
           <TripCard key={index}>
-            <CountryName>{trip.country}</CountryName>
-
-            <TripDetails>
-              <div>
-                <strong>Travel Type:</strong> {trip.travelType}
-              </div>
-              <div>
-                <strong>Dates:</strong> {trip.startDate} - {trip.endDate}
-              </div>
-              <div>
-                <strong>Rating:</strong> <Rating>★ {trip.rating}/5</Rating>
-              </div>
-              {trip.highlight && (
-                <div>
-                  <strong>Highlight:</strong> {trip.highlight}
-                </div>
-              )}
-              {trip.review && (
-                <div>
-                  <strong>Review:</strong> {trip.review}
-                </div>
-              )}
-              {trip.tip && (
-                <div>
-                  <strong>Tip:</strong> {trip.tip}
-                </div>
-              )}
-            </TripDetails>
+            {editIndex === index ? (
+              <AddTripForm
+                initialData={trip}
+                onCancel={handleCancelEdit}
+                onSubmit={(updated) => handleSaveEdit(index, updated)}
+              />
+            ) : (
+              <>
+                <CountryName>{trip.country}</CountryName>
+                <TripDetails>
+                  <div><strong>Travel Type:</strong> {trip.travelType}</div>
+                  <div><strong>Dates:</strong> {trip.startDate} - {trip.endDate}</div>
+                  <div><strong>Rating:</strong> <Rating>★ {trip.rating}/5</Rating></div>
+                  {trip.highlight && <div><strong>Highlight:</strong> {trip.highlight}</div>}
+                  {trip.review && <div><strong>Review:</strong> {trip.review}</div>}
+                  {trip.tip && <div><strong>Tip:</strong> {trip.tip}</div>}
+                </TripDetails>
+                <Button onClick={() => handleEditClick(index)}>Edit Trip ✏️</Button>
+              </>
+            )}
           </TripCard>
         ))}
       </TripGrid>

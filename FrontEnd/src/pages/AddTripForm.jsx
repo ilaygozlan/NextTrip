@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import geoData from "../features.json";
 
@@ -65,6 +65,7 @@ const Button = styled.button`
     background-color: #2980b9;
   }
 `;
+
 const SuggestionList = styled.ul`
   list-style: none;
   background: white;
@@ -108,17 +109,19 @@ const RatingContainer = styled.div`
   margin-top: 0.5rem;
 `;
 
-const AddTripForm = ({ onSubmit }) => {
-  const [formData, setFormData] = useState({
-    country: "",
-    startDate: "",
-    endDate: "",
-    review: "",
-    tip: "",
-    rating: "",
-    highlight: "",
-    travelType: "Solo",
-  });
+const AddTripForm = ({ onSubmit, initialData = null, onCancel }) => {
+  const [formData, setFormData] = useState(
+    initialData || {
+      country: "",
+      startDate: "",
+      endDate: "",
+      review: "",
+      tip: "",
+      rating: 0,
+      highlight: "",
+      travelType: "Solo",
+    }
+  );
 
   const [suggestions, setSuggestions] = useState([]);
   const [rating, setRating] = useState(0);
@@ -150,31 +153,13 @@ const AddTripForm = ({ onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmit) {
-      const fullFormData = {
-        ...formData,
-        rating: rating, 
-      };
-      onSubmit(fullFormData);
-    }
-
-    alert("Trip added successfully!");
-    setFormData({
-      country: "",
-      startDate: "",
-      endDate: "",
-      review: "",
-      tip: "",
-      rating: 0,
-      highlight: "",
-      travelType: "Solo",
-    });
+    if (onSubmit) onSubmit(formData);
   };
 
   return (
     <FormContainer>
       <form onSubmit={handleSubmit}>
-        <FormTitle>Add New Trip</FormTitle>
+        <FormTitle>{initialData ? "Edit Trip" : "Add New Trip"}</FormTitle>
 
         <FormGroup>
           <label>Country</label>
@@ -222,18 +207,12 @@ const AddTripForm = ({ onSubmit }) => {
             name="review"
             value={formData.review}
             onChange={handleChange}
-            placeholder="What did you think about this trip?"
           />
         </FormGroup>
 
         <FormGroup>
-          <Label>Tip for Travelers</Label>
-          <TextArea
-            name="tip"
-            value={formData.tip}
-            onChange={handleChange}
-            placeholder="Useful tip for future travelers"
-          />
+          <Label>Tip</Label>
+          <TextArea name="tip" value={formData.tip} onChange={handleChange} />
         </FormGroup>
 
         <FormGroup>
@@ -243,7 +222,14 @@ const AddTripForm = ({ onSubmit }) => {
               <Star
                 key={star}
                 active={star <= rating}
-                onClick={() => setRating(star)}
+                onClick={() => {
+                  const newRating = star === rating ? 0 : star;
+                  setRating(newRating);
+                  setFormData((prev) => ({
+                    ...prev,
+                    rating: newRating,
+                  }));
+                }}
               >
                 ★
               </Star>
@@ -257,7 +243,6 @@ const AddTripForm = ({ onSubmit }) => {
             name="highlight"
             value={formData.highlight}
             onChange={handleChange}
-            placeholder="Favorite moment or place"
           />
         </FormGroup>
 
@@ -276,7 +261,22 @@ const AddTripForm = ({ onSubmit }) => {
           </Select>
         </FormGroup>
 
-        <Button type="submit">Add Trip</Button>
+        <Button type="submit">
+          {initialData ? "Save Changes" : "Add Trip"}
+        </Button>
+        {onCancel && (
+          <Button
+            type="button"
+            onClick={onCancel}
+            style={{
+              backgroundColor: "#ccc",
+              color: "#333",
+              marginLeft: "1rem",
+            }}
+          >
+            Cancel
+          </Button>
+        )}
       </form>
     </FormContainer>
   );
