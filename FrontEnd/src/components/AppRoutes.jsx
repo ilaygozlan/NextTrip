@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Home from "../pages/Home";
 import MyTrips from "../pages/MyTrips";
-import RateCountry from "../pages/RateCountry";
+import MyBusinesses from "../pages/MyBusinesses";
 import CountryPage from "../pages/CountryPage";
 import LandingPage from "../pages/LandingPage";
 import Signup from "../pages/Signup";
@@ -50,7 +50,6 @@ const AppRoutes = () => {
   const { user, setUser } = useUser();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [visitedCountries, setVisitedCountries] = useState([]);
-  
 
   useEffect(() => {
     const urlParams = new URLSearchParams(
@@ -60,7 +59,6 @@ const AppRoutes = () => {
     setIsAuthenticated(false);
 
     if (localStorage.getItem("id_token")) {
-
       setIsAuthenticated(true);
       const id_token = localStorage.getItem("id_token");
 
@@ -198,7 +196,9 @@ const AppRoutes = () => {
 
   return (
     <>
-      {isAuthenticated && user?.userType && <Navbar setAuthentication={setIsAuthenticated}/>}
+      {isAuthenticated && user?.userType && (
+        <Navbar setAuthentication={setIsAuthenticated} />
+      )}
       <main style={{ minHeight: "calc(100vh - 64px)", padding: "2rem 0" }}>
         <Routes>
           {isAuthenticated ? (
@@ -212,9 +212,15 @@ const AppRoutes = () => {
               <>
                 <Route
                   path="/"
-                  element={<Home visitedCountries={visitedCountries} setVisitedCountries={setVisitedCountries} />}
+                  element={
+                    <Home
+                      visitedCountries={visitedCountries}
+                      setVisitedCountries={setVisitedCountries}
+                    />
+                  }
                 />
                 <Route path="/my-trips" element={<MyTrips />} />
+                <Route path="/my-businesses" element={<MyBusinesses />} />
                 <Route path="/country/:countryName" element={<CountryPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </>

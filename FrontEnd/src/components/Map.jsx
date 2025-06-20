@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   ComposableMap,
   Geographies,
   Geography,
   Marker,
 } from "react-simple-maps";
-import { geoCentroid } from "d3-geo";
+import { geoCentroid, geoMercator } from "d3-geo";
 import geoData from "../features.json";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
@@ -17,13 +17,24 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   const [pendingCountry, setPendingCountry] = useState(null);
   const { user } = useUser();
   const navigate = useNavigate();
+  const mapRef = useRef(null);
+
+  const projection = geoMercator()
+    .scale(160)
+    .translate([900 / 2, 700 / 2]);
 
   const handleClick = (geo) => {
     if (selected?.geo?.id === geo.id) {
       setSelected(null);
     } else {
       const centroid = geoCentroid(geo);
-      setSelected({ geo, coordinates: centroid });
+      const projected = projection(centroid);
+
+      setSelected({
+        geo,
+        coordinates: centroid,
+        screenPosition: projected,
+      });
     }
   };
 
@@ -102,8 +113,8 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   }
 
   return (
-    <div>
-      <ComposableMap projection="geoMercator">
+    <div style={{ position: "relative" }}>
+      <ComposableMap projection="geoMercator" ref={mapRef}>
         <Geographies geography={geoData}>
           {({ geographies }) =>
             geographies.map((geo) => {
@@ -135,87 +146,83 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
             })
           }
         </Geographies>
-
-        {selected && selected.coordinates && (
-          <Marker coordinates={selected.coordinates}>
-            <foreignObject x={-60} y={-60} width={150} height={100}>
-              <div
-                xmlns="http://www.w3.org/1999/xhtml"
-                style={{
-                  background: "white",
-                  border: "1px solid #333",
-                  borderRadius: "6px",
-                  padding: "8px",
-                  fontSize: "12px",
-                  width: "120px",
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-                }}
-              >
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <strong>{selected.geo.properties.name}</strong>
-                  <span
-                    onClick={() => setSelected(null)}
-                    style={{
-                      cursor: "pointer",
-                      color: "red",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    ×
-                  </span>
-                </div>
-
-                {!visitedCountries.includes(selected.geo.properties.name) ? (
-                  <button
-                    onClick={promptTripForm}
-                    style={{
-                      marginTop: "6px",
-                      fontSize: "11px",
-                      padding: "4px 6px",
-                      background: "#4CAF50",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "3px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Mark as Visited
-                  </button>
-                ) : (
-                  <p
-                    style={{
-                      color: "green",
-                      fontSize: "11px",
-                      marginTop: "6px",
-                    }}
-                  >
-                    Already visited
-                  </p>
-                )}
-                <button
-                  onClick={goToCountryPage}
-                  style={{
-                    marginTop: "6px",
-                    fontSize: "11px",
-                    padding: "4px 6px",
-                    background: "#1976d2",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "3px",
-                    cursor: "pointer",
-                  }}
-                >
-                  View Details
-                </button>
-              </div>
-            </foreignObject>
-          </Marker>
-        )}
       </ComposableMap>
+      {selected && selected.coordinates && (
+        <div
+          style={{
+            position: "absolute",
+            left: `${selected.screenPosition?.[0] ?? 0}px`,
+            top: `${selected.screenPosition?.[1] ?? 0}px`,
+            transform: "translate(-50%, -100%)",
+            background: "white",
+            border: "1px solid #333",
+            borderRadius: "6px",
+            padding: "8px",
+            fontSize: "12px",
+            width: "140px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+            zIndex: 999,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <strong>{selected.geo.properties.name}</strong>
+            <span
+              onClick={() => setSelected(null)}
+              style={{
+                cursor: "pointer",
+                color: "red",
+                fontWeight: "bold",
+              }}
+            >
+              ×
+            </span>
+          </div>
 
-      {/* Trip Form Popup */}
+          {!visitedCountries.includes(selected.geo.properties.name) ? (
+            <button
+              onClick={promptTripForm}
+              style={{
+                marginTop: "6px",
+                fontSize: "11px",
+                padding: "4px 6px",
+                background: "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                cursor: "pointer",
+              }}
+            >
+              Mark as Visited
+            </button>
+          ) : (
+            <p
+              style={{
+                color: "green",
+                fontSize: "11px",
+                marginTop: "6px",
+              }}
+            >
+              Already visited
+            </p>
+          )}
+          <button
+            onClick={goToCountryPage}
+            style={{
+              marginTop: "6px",
+              fontSize: "11px",
+              padding: "4px 6px",
+              background: "#1976d2",
+              color: "white",
+              border: "none",
+              borderRadius: "3px",
+              cursor: "pointer",
+            }}
+          >
+            View Details
+          </button>
+        </div>
+      )}
+
       {showForm && pendingCountry && (
         <div
           style={{
@@ -242,11 +249,11 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
               overflowY: "auto",
             }}
           >
-            <h3 style={{ marginBottom: "1rem" }}>
-              Add a Trip to {pendingCountry.name}
-            </h3>
+            <h1 style={{ marginBottom: "1rem", textAlign: "center" }}>
+              {pendingCountry.name}
+            </h1>
             <AddTripForm
-              initialData={{ country: pendingCountry.name }}
+              initialData={null}
               onSubmit={handleAddTrip}
               onCancel={handleCancel}
             />

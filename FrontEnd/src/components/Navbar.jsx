@@ -80,7 +80,9 @@ function Navbar(props) {
         <Logo to="/">NextTrip</Logo>
         <NavLinks>
           <NavLink to="/">Home</NavLink>
-          {user.userType !== "business" && (
+          {user.userType === "business" ? (
+            <NavLink to="/my-businesses">My Businesses</NavLink>
+          ) : (
             <NavLink to="/my-trips">My Trips</NavLink>
           )}
           <LogoutButton onClick={handleLogout}>Logout</LogoutButton>

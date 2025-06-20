@@ -161,7 +161,7 @@ const AddTripForm = ({ onSubmit, initialData = null, onCancel }) => {
       <form onSubmit={handleSubmit}>
         <FormTitle>{initialData ? "Edit Trip" : "Add New Trip"}</FormTitle>
 
-        <FormGroup>
+        {initialData && (<FormGroup>
           <label>Country</label>
           <Input
             name="country"
@@ -179,7 +179,7 @@ const AddTripForm = ({ onSubmit, initialData = null, onCancel }) => {
               ))}
             </SuggestionList>
           )}
-        </FormGroup>
+        </FormGroup>)}
 
         <FormGroup>
           <Label>Start Date</Label>
