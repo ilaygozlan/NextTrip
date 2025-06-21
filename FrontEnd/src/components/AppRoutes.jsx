@@ -94,7 +94,7 @@ const AppRoutes = () => {
           const userData = await response.json();
           console.log("User from Lambda:", userData);
           setUser(userData);
-          setVisitedCountries(userData.visitedCountries);
+          setVisitedCountries(userData.visitedCountries || []);
         } catch (err) {
           console.error("Error fetching user details from Lambda:", err);
           localStorage.removeItem("id_token");
@@ -220,7 +220,7 @@ const AppRoutes = () => {
                   }
                 />
                 <Route path="/my-trips" element={<MyTrips />} />
-                <Route path="/my-businesses" element={<MyBusinesses />} />
+                <Route path="/my-businesses" element={<MyBusinesses  setVisitedCountries={setVisitedCountries}/>} />
                 <Route path="/country/:countryName" element={<CountryPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </>

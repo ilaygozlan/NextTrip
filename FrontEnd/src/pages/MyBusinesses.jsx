@@ -8,6 +8,7 @@ const BusinessGrid = styled.div`
   overflow-x: auto;
   gap: 2rem;
   margin-top: 2rem;
+  margin-left: 1rem;
   padding-bottom: 1rem;
 `;
 
@@ -112,10 +113,15 @@ const ModalContent = styled.div`
   overflow-y: auto;
 `;
 
-function MyBusinesses() {
+function MyBusinesses({ setVisitedCountries }) {
   const { user } = useUser();
   const [businesses, setBusinesses] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
+  const [discountPopupIndex, setDiscountPopupIndex] = useState(null);
+  const [discountData, setDiscountData] = useState({
+    percent: "",
+    message: "",
+  });
 
   const fetchBusinesses = async () => {
     try {
@@ -138,7 +144,9 @@ function MyBusinesses() {
   };
 
   const handleDelete = async (index) => {
-    const confirmed = window.confirm("Are you sure you want to delete this business?");
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this business?"
+    );
     if (!confirmed) return;
 
     const businessId = businesses[index].id;
@@ -157,6 +165,9 @@ function MyBusinesses() {
       if (!res.ok) throw new Error("Failed to delete");
       const updated = businesses.filter((_, i) => i !== index);
       setBusinesses(updated);
+      setVisitedCountries((prev) =>
+        prev.filter((c) => c !== countryName)
+      );
     } catch (err) {
       console.error("Error deleting business:", err);
     }
@@ -186,13 +197,58 @@ function MyBusinesses() {
     }
   };
 
+  const sendDiscount = async (businessId, countryName) => {
+    try {
+      console.log(
+        businessId,
+        countryName,
+        discountData.percent,
+        discountData.message
+      );
+      const response = await fetch(
+        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/SendDiscount",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            countryName,
+            businessId,
+            percent: discountData.percent,
+            message: discountData.message,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to send discount");
+
+      alert("Discount sent successfully!");
+      setDiscountPopupIndex(null);
+      setDiscountData({ percent: "", message: "" });
+    } catch (err) {
+      console.error("Error sending discount:", err);
+      alert("Failed to send discount.");
+    }
+  };
+
   return (
     <div>
-      <h2 style={{ textAlign: "center", margin: "2rem 0" }}>My Businesses</h2>
+      <h1 style={{ textAlign: "center", margin: "2rem 0" }}>My Businesses</h1>
+      <p
+        style={{
+          textAlign: "center",
+          maxWidth: "600px",
+          margin: "0 auto",
+          color: "#555",
+        }}
+      >
+        On this page, you can manage all the businesses you've added — edit
+        their details, delete them if needed, or send special discounts to users
+        who follow your business.
+      </p>
       <BusinessGrid>
         {businesses.map((business, index) => (
           <BusinessCard key={business.id}>
-            <DeleteXButton onClick={() => handleDelete(index)}>×</DeleteXButton>
+            <DeleteXButton onClick={() => handleDelete(index)}>X</DeleteXButton>
             <BusinessImage image={business.imageLink} />
             <BusinessContent>
               <BusinessName>{business.name}</BusinessName>
@@ -208,6 +264,9 @@ function MyBusinesses() {
             </BusinessContent>
             <ButtonGroup>
               <Button onClick={() => handleEdit(index)}>Edit ✏️</Button>
+              <Button onClick={() => setDiscountPopupIndex(index)}>
+                Send Discount 📢
+              </Button>
             </ButtonGroup>
           </BusinessCard>
         ))}
@@ -221,6 +280,55 @@ function MyBusinesses() {
               onCancel={() => setEditIndex(null)}
               onSubmit={(updated) => handleSave(editIndex, updated)}
             />
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {discountPopupIndex !== null && (
+        <ModalOverlay>
+          <ModalContent>
+            <h3>Send Discount</h3>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const biz = businesses[discountPopupIndex];
+                await sendDiscount(biz.id, biz.countryName);
+              }}
+            >
+              <label>Discount (%):</label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                required
+                value={discountData.percent}
+                onChange={(e) =>
+                  setDiscountData({ ...discountData, percent: e.target.value })
+                }
+                style={{ width: "100%", padding: "8px", marginBottom: "1rem" }}
+              />
+              <label>Message:</label>
+              <textarea
+                required
+                value={discountData.message}
+                onChange={(e) =>
+                  setDiscountData({ ...discountData, message: e.target.value })
+                }
+                style={{ width: "100%", padding: "8px", height: "100px" }}
+              />
+              <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
+                <Button type="submit">Send</Button>
+                <Button
+                  onClick={() => {
+                    setDiscountPopupIndex(null);
+                    setDiscountData({ percent: "", message: "" });
+                  }}
+                  delete
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
           </ModalContent>
         </ModalOverlay>
       )}

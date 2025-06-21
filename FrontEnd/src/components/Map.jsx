@@ -12,6 +12,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   const [showForm, setShowForm] = useState(false);
   const [showBusinessForm, setShowBusinessForm] = useState(false);
   const [pendingCountry, setPendingCountry] = useState(null);
+  const [businessCountries, setBusinessCountries] = useState([]);
   const { user } = useUser();
   const navigate = useNavigate();
   const projection = geoMercator()
@@ -32,7 +33,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
     const countryName = selected.geo.properties.name;
     const countryId = selected.geo.id;
 
-    if (!visitedCountries.includes(countryName)) {
+    if (!(visitedCountries || []).includes(countryName)) {
       setPendingCountry({ name: countryName, id: countryId });
       if (user.userType === "business") {
         setShowBusinessForm(true);
@@ -72,7 +73,6 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   };
 
   const handleAddBusiness = async (businessData) => {
-
     try {
       const response = await fetch(
         "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddBusinessToCountry",
@@ -89,7 +89,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
 
-      await markCountryVisited();
+      markCountryVisited();
       setShowBusinessForm(false);
     } catch (err) {
       console.error("Failed to save business:", err);
@@ -98,7 +98,14 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   };
 
   const markCountryVisited = async () => {
+    setSelected(null);
+    setPendingCountry(null);
+
+    if (user.userType === "business") {
+      setBusinessCountries((prev) => [...prev, pendingCountry.name]);
+    }
     setVisitedCountries((prev) => [...prev, pendingCountry.name]);
+
     await fetch(
       "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCounrty",
       {
@@ -110,8 +117,6 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
         }),
       }
     );
-    setPendingCountry(null);
-    setSelected(null);
   };
 
   const handleCancel = () => {
@@ -139,7 +144,18 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
           {({ geographies }) =>
             geographies.map((geo) => {
               const code = geo.properties.name;
-              const isVisited = visitedCountries.includes(code);
+              const isVisited = (visitedCountries || []).includes(code);
+              const isBusinessAdded =
+                user.userType === "business" &&
+                businessCountries.includes(code);
+
+              // Determine fill color
+              const fillColor = isBusinessAdded
+                ? "#ff9800"
+                : isVisited
+                ? "#66bb6a"
+                : "#D6D6DA";
+
               return (
                 <Geography
                   key={geo.rsmKey}
@@ -147,16 +163,24 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
                   onClick={() => handleClick(geo)}
                   style={{
                     default: {
-                      fill: isVisited ? "#66bb6a" : "#D6D6DA",
+                      fill: fillColor,
                       outline: "none",
                       cursor: "pointer",
                     },
                     hover: {
-                      fill: isVisited ? "#388e3c" : "#F53",
+                      fill: isBusinessAdded
+                        ? "#fb8c00"
+                        : isVisited
+                        ? "#388e3c"
+                        : "#3f51b5",
                       outline: "none",
                     },
                     pressed: {
-                      fill: isVisited ? "#2e7d32" : "#E42",
+                      fill: isBusinessAdded
+                        ? "#ef6c00"
+                        : isVisited
+                        ? "#2e7d32"
+                        : "#3f51b5",
                       outline: "none",
                     },
                   }}
@@ -193,7 +217,8 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
               ×
             </span>
           </div>
-          {!visitedCountries.includes(selected.geo.properties.name) ? (
+          {!(visitedCountries || []).includes(selected.geo.properties.name) &&
+          !(businessCountries || []).includes(selected.geo.properties.name) ? (
             <button
               onClick={promptTripForm}
               style={{
@@ -214,7 +239,9 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
             </button>
           ) : (
             <p style={{ color: "green", fontSize: "11px", marginTop: "6px" }}>
-              Already visited
+              {user.userType === "business"
+                ? "Business already added"
+                : "Already visited"}
             </p>
           )}
           <button
