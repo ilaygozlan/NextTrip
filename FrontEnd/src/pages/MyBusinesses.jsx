@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useUser } from "../contexts/UserContext";
-import AddBusinessForm from "./AddBusinessForm";
+import AddBusinessForm from "../components/AddBusinessForm";
 
 const BusinessGrid = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  overflow-x: auto;
   gap: 2rem;
   margin-top: 2rem;
+  padding-bottom: 1rem;
 `;
 
 const BusinessCard = styled.div`
@@ -15,12 +16,15 @@ const BusinessCard = styled.div`
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  width: 300px;
+  flex: 0 0 400px;
   position: relative;
+  padding-top: 1.5rem; /* extra space for the X button */
 `;
 
 const BusinessImage = styled.div`
   height: 180px;
+  border-radius: 12px;
+  margin: 10px;
   background-image: url(${(props) => props.image});
   background-size: cover;
   background-position: center;
@@ -54,11 +58,12 @@ const BusinessContact = styled.div`
 
 const DeleteXButton = styled.button`
   position: absolute;
-  top: 8px;
-  right: 12px;
+  top: 4px;
+  right: 8px;
   background: transparent;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  font-weight: bold;
   color: #e74c3c;
   cursor: pointer;
 `;
@@ -103,6 +108,8 @@ const ModalContent = styled.div`
   border-radius: 10px;
   width: 90%;
   max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
 `;
 
 function MyBusinesses() {
