@@ -442,86 +442,6 @@ const CountryPage = () => {
     language: "French",
   };
 
-  const handleBusinessSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      // Step 1: Upload image to S3
-      const uploadImageToS3 = async (file) => {
-        console.log(file.name);
-        const encodedName = encodeURIComponent(file.name);
-        const fileName = `${Date.now()}_${encodedName}`;
-        const res = await fetch(
-          `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/UploadImage?fileName=${fileName}`
-        );
-        const { uploadUrl, fileUrl } = await res.json();
-        console.log(uploadUrl);
-        await fetch(uploadUrl, {
-          method: "PUT",
-          headers: {
-            "Content-Type": file.type,
-          },
-          body: file,
-        });
-
-        return fileUrl;
-      };
-
-      let imageUrl = "";
-      if (businessFormData.image) {
-        imageUrl = await uploadImageToS3(businessFormData.image);
-        console.log(imageUrl);
-      }
-
-      // Step 2: Build and send payload
-      const newBusiness = {
-        ...businessFormData,
-        image: imageUrl,
-        submittedAt: new Date().toISOString(),
-      };
-
-      const payload = {
-        countryName,
-        business: newBusiness,
-      };
-
-      const response = await fetch(
-        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddBusinessToCountry",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert("Failed to register business: " + data.message);
-        return;
-      }
-
-      alert("Business registered successfully!");
-      setBusinesses((prev) => [...prev, newBusiness]);
-
-      // Reset form and image
-      setBusinessFormData({
-        name: "",
-        type: "",
-        description: "",
-        address: "",
-        phone: "",
-        email: "",
-        website: "",
-        openingHours: "",
-        image: null,
-      });
-      setImagePreview(null);
-    } catch (err) {
-      console.error("Submission error:", err);
-      alert("Something went wrong. Please try again.");
-    }
-  };
 
   const getCountryBusinesses = async (countryName) => {
     try {
@@ -669,7 +589,7 @@ const CountryPage = () => {
             <BusinessList>
               {businesses.map((business) => (
                 <BusinessCard key={business.id}>
-                  <BusinessImage image={business.image} />
+                  <BusinessImage image={business.imageLink} />
                   <BusinessContent>
                     <BusinessName>{business.name}</BusinessName>
                     {!isBusinessView && (
@@ -724,137 +644,12 @@ const CountryPage = () => {
       ) : (
         // Business registration view
         <>
-          <Section>
-            <SectionTitle>Register Your Business</SectionTitle>
-            <Subtitle style={{ textAlign: "center", marginBottom: "2rem" }}>
-              List your business in {countryName} and reach travelers from
-              around the world
-            </Subtitle>
-            {imagePreview && (
-              <div style={{ marginTop: "1rem", textAlign: "center" }}>
-                <img
-                  src={imagePreview}
-                  alt="Business preview"
-                  style={{
-                    maxWidth: "100%",
-                    height: "250px",
-                    borderRadius: "8px",
-                  }}
-                />
-              </div>
-            )}
-            <BusinessForm onSubmit={handleBusinessSubmit}>
-              <FormGroup>
-                <Label>Business Image</Label>
-                <Input
-                  type="file"
-                  name="image"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  required
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label>Business Name</Label>
-                <Input
-                  type="text"
-                  name="name"
-                  value={businessFormData.name}
-                  onChange={handleBusinessChange}
-                  placeholder="Enter your business name"
-                  required
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label>Business Type</Label>
-                <Select
-                  name="type"
-                  value={businessFormData.type}
-                  onChange={handleBusinessChange}
-                  required
-                >
-                  <option value="">Select business type</option>
-                  <option value="Restaurant">Restaurant</option>
-                  <option value="Hotel">Hotel</option>
-                  <option value="Tour">Tour</option>
-                  <option value="Shop">Shop</option>
-                  <option value="Other">Other</option>
-                </Select>
-              </FormGroup>
-              <FormGroup>
-                <Label>Description</Label>
-                <TextArea
-                  name="description"
-                  value={businessFormData.description}
-                  onChange={handleBusinessChange}
-                  placeholder="Describe your business..."
-                  required
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label>Address</Label>
-                <Input
-                  type="text"
-                  name="address"
-                  value={businessFormData.address}
-                  onChange={handleBusinessChange}
-                  placeholder="Enter your business address"
-                  required
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label>Phone Number</Label>
-                <Input
-                  type="tel"
-                  name="phone"
-                  value={businessFormData.phone}
-                  onChange={handleBusinessChange}
-                  placeholder="Enter your phone number"
-                  required
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  name="email"
-                  value={businessFormData.email}
-                  onChange={handleBusinessChange}
-                  placeholder="Enter your email"
-                  required
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label>Website</Label>
-                <Input
-                  type="url"
-                  name="website"
-                  value={businessFormData.website}
-                  onChange={handleBusinessChange}
-                  placeholder="Enter your website URL"
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label>Opening Hours</Label>
-                <Input
-                  type="text"
-                  name="openingHours"
-                  value={businessFormData.openingHours}
-                  onChange={handleBusinessChange}
-                  placeholder="e.g., Mon-Fri: 9:00-18:00"
-                  required
-                />
-              </FormGroup>
-              <Button type="submit">Register Business</Button>
-            </BusinessForm>
-          </Section>
-
           <Section style={{ marginTop: "2rem" }}>
             <SectionTitle>Local Businesses </SectionTitle>
             <BusinessList>
               {businesses.map((business) => (
                 <BusinessCard key={business.id}>
-                  <BusinessImage image={business.image} />
+                  <BusinessImage image={business.imageLink} />
                   <BusinessContent>
                     <BusinessName>{business.name}</BusinessName>
                     <BusinessType>{business.type}</BusinessType>

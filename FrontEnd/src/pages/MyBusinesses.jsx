@@ -1,105 +1,114 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useUser } from "../contexts/UserContext";
+import AddBusinessForm from "./AddBusinessForm";
 
-const Container = styled.div`
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
-`;
-
-const Title = styled.h1`
-  text-align: center;
-  margin-bottom: 2rem;
-`;
-
-const ToggleButton = styled.button`
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  margin-bottom: 2rem;
-  cursor: pointer;
-  transition: background 0.3s ease;
-
-  &:hover {
-    background: #2980b9;
-  }
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const Label = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
-
-const Button = styled.button`
-  background: #2ecc71;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s ease;
-
-  &:hover {
-    background: #27ae60;
-  }
+const BusinessGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 2rem;
 `;
 
 const BusinessCard = styled.div`
-  border: 1px solid #ddd;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  position: relative;
 `;
 
-const MyBusinesses = () => {
-  const { user } = useUser();
-  const [showForm, setShowForm] = useState(false);
-  const [businesses, setBusinesses] = useState([]);
-  const [formData, setFormData] = useState({
-    name: "",
-    type: "",
-    description: "",
-    address: "",
-    phone: "",
-    email: user?.Email || "",
-    website: "",
-    openingHours: "",
-  });
+const BusinessImage = styled.div`
+  height: 180px;
+  background-image: url(${(props) => props.image});
+  background-size: cover;
+  background-position: center;
+`;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+const BusinessContent = styled.div`
+  padding: 1rem;
+`;
+
+const BusinessName = styled.h3`
+  margin: 0;
+  color: #2c3e50;
+`;
+
+const BusinessType = styled.p`
+  margin: 0.3rem 0;
+  color: #7f8c8d;
+  font-weight: bold;
+`;
+
+const BusinessDescription = styled.p`
+  font-size: 0.9rem;
+  color: #555;
+`;
+
+const BusinessContact = styled.div`
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 0.5rem;
+`;
+
+const DeleteXButton = styled.button`
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: #e74c3c;
+  cursor: pointer;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1rem 1rem;
+`;
+
+const Button = styled.button`
+  background-color: ${(props) => (props.delete ? "#e74c3c" : "#3498db")};
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.3s;
+
+  &:hover {
+    background-color: ${(props) => (props.delete ? "#c0392b" : "#2980b9")};
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+`;
+
+function MyBusinesses() {
+  const { user } = useUser();
+  const [businesses, setBusinesses] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
 
   const fetchBusinesses = async () => {
     try {
@@ -109,7 +118,7 @@ const MyBusinesses = () => {
       const data = await res.json();
       setBusinesses(data.businesses || []);
     } catch (err) {
-      console.error("Error fetching businesses:", err);
+      console.error("Failed to fetch businesses:", err);
     }
   };
 
@@ -117,113 +126,99 @@ const MyBusinesses = () => {
     if (user?.Email) fetchBusinesses();
   }, [user]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const payload = {
-      countryName: "MyBusinesses",
-      business: {
-        ...formData,
-        submittedAt: new Date().toISOString(),
-      },
-    };
+  const handleEdit = (index) => {
+    setEditIndex(index);
+  };
+
+  const handleDelete = async (index) => {
+    const confirmed = window.confirm("Are you sure you want to delete this business?");
+    if (!confirmed) return;
+
+    const businessId = businesses[index].id;
+    const countryName = businesses[index].countryName;
 
     try {
       const res = await fetch(
-        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddBusinessToCountry",
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/DeleteBusiness`,
         {
-          method: "POST",
+          method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ id: businessId, countryName }),
         }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
 
-      alert("Business added!");
-      fetchBusinesses();
-      setShowForm(false);
+      if (!res.ok) throw new Error("Failed to delete");
+      const updated = businesses.filter((_, i) => i !== index);
+      setBusinesses(updated);
     } catch (err) {
-      console.error("Error submitting business:", err);
-      alert("Failed to add business");
+      console.error("Error deleting business:", err);
+    }
+  };
+
+  const handleSave = async (index, updated) => {
+    const original = businesses[index];
+    const updatedBusiness = { ...original, ...updated };
+
+    try {
+      const res = await fetch(
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/UpdateBusiness`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedBusiness),
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to update");
+      const copy = [...businesses];
+      copy[index] = updatedBusiness;
+      setBusinesses(copy);
+      setEditIndex(null);
+    } catch (err) {
+      console.error("Error updating business:", err);
     }
   };
 
   return (
-    <Container>
-      <Title>My Businesses</Title>
-      <ToggleButton onClick={() => setShowForm(!showForm)}>
-        {showForm ? "Cancel" : "Add New Business"}
-      </ToggleButton>
+    <div>
+      <h2 style={{ textAlign: "center", margin: "2rem 0" }}>My Businesses</h2>
+      <BusinessGrid>
+        {businesses.map((business, index) => (
+          <BusinessCard key={business.id}>
+            <DeleteXButton onClick={() => handleDelete(index)}>×</DeleteXButton>
+            <BusinessImage image={business.imageLink} />
+            <BusinessContent>
+              <BusinessName>{business.name}</BusinessName>
+              <BusinessType>{business.type}</BusinessType>
+              <BusinessDescription>{business.description}</BusinessDescription>
+              <BusinessContact>
+                <div>📍 {business.address}</div>
+                <div>📞 {business.phone}</div>
+                <div>✉️ {business.email}</div>
+                <div>🌐 {business.website}</div>
+                <div>🕒 {business.openingHours}</div>
+              </BusinessContact>
+            </BusinessContent>
+            <ButtonGroup>
+              <Button onClick={() => handleEdit(index)}>Edit ✏️</Button>
+            </ButtonGroup>
+          </BusinessCard>
+        ))}
+      </BusinessGrid>
 
-      {showForm && (
-        <form onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label>Business Name</Label>
-            <Input name="name" value={formData.name} onChange={handleChange} required />
-          </FormGroup>
-          <FormGroup>
-            <Label>Type</Label>
-            <Select name="type" value={formData.type} onChange={handleChange} required>
-              <option value="">Select type</option>
-              <option value="Restaurant">Restaurant</option>
-              <option value="Hotel">Hotel</option>
-              <option value="Tour">Tour</option>
-              <option value="Shop">Shop</option>
-              <option value="Other">Other</option>
-            </Select>
-          </FormGroup>
-          <FormGroup>
-            <Label>Description</Label>
-            <TextArea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              required
+      {editIndex !== null && (
+        <ModalOverlay>
+          <ModalContent>
+            <AddBusinessForm
+              initialData={businesses[editIndex]}
+              onCancel={() => setEditIndex(null)}
+              onSubmit={(updated) => handleSave(editIndex, updated)}
             />
-          </FormGroup>
-          <FormGroup>
-            <Label>Address</Label>
-            <Input name="address" value={formData.address} onChange={handleChange} required />
-          </FormGroup>
-          <FormGroup>
-            <Label>Phone</Label>
-            <Input name="phone" value={formData.phone} onChange={handleChange} required />
-          </FormGroup>
-          <FormGroup>
-            <Label>Email</Label>
-            <Input name="email" value={formData.email} onChange={handleChange} required />
-          </FormGroup>
-          <FormGroup>
-            <Label>Website</Label>
-            <Input name="website" value={formData.website} onChange={handleChange} />
-          </FormGroup>
-          <FormGroup>
-            <Label>Opening Hours</Label>
-            <Input
-              name="openingHours"
-              value={formData.openingHours}
-              onChange={handleChange}
-              required
-            />
-          </FormGroup>
-          <Button type="submit">Submit</Button>
-        </form>
+          </ModalContent>
+        </ModalOverlay>
       )}
-
-      {businesses.map((b, i) => (
-        <BusinessCard key={i}>
-          <h3>{b.name}</h3>
-          <p><strong>Type:</strong> {b.type}</p>
-          <p>{b.description}</p>
-          <p><strong>📍</strong> {b.address}</p>
-          <p><strong>📞</strong> {b.phone}</p>
-          <p><strong>✉️</strong> {b.email}</p>
-          {b.website && <p><strong>🌐</strong> {b.website}</p>}
-          <p><strong>🕒</strong> {b.openingHours}</p>
-        </BusinessCard>
-      ))}
-    </Container>
+    </div>
   );
-};
+}
 
 export default MyBusinesses;

@@ -65,7 +65,7 @@ const TripGrid = styled.div`
 
 const TripCard = styled.div`
   position: relative;
-  flex: 0 0 300px;
+  flex: 0 0 400px;
   background: white;
   border-radius: 8px;
   padding: 1.5rem;

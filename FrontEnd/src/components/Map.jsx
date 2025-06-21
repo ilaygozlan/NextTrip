@@ -1,24 +1,19 @@
-import React, { useState, useRef, useEffect } from "react";
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  Marker,
-} from "react-simple-maps";
+import React, { useState, useRef } from "react";
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { geoCentroid, geoMercator } from "d3-geo";
 import geoData from "../features.json";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 import AddTripForm from "../pages/AddTripForm";
+import AddBusinessForm from "../components/AddBusinessForm";
 
 const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   const [selected, setSelected] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showBusinessForm, setShowBusinessForm] = useState(false);
   const [pendingCountry, setPendingCountry] = useState(null);
   const { user } = useUser();
   const navigate = useNavigate();
-  const mapRef = useRef(null);
-
   const projection = geoMercator()
     .scale(160)
     .translate([900 / 2, 700 / 2]);
@@ -29,12 +24,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
     } else {
       const centroid = geoCentroid(geo);
       const projected = projection(centroid);
-
-      setSelected({
-        geo,
-        coordinates: centroid,
-        screenPosition: projected,
-      });
+      setSelected({ geo, coordinates: centroid, screenPosition: projected });
     }
   };
 
@@ -44,7 +34,11 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
 
     if (!visitedCountries.includes(countryName)) {
       setPendingCountry({ name: countryName, id: countryId });
-      setShowForm(true);
+      if (user.userType === "business") {
+        setShowBusinessForm(true);
+      } else {
+        setShowForm(true);
+      }
     }
   };
 
@@ -67,34 +61,62 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
       );
 
       const result = await response.json();
-
       if (!response.ok) throw new Error(result.message);
 
-      setVisitedCountries((prev) => [...prev, pendingCountry.name]);
-
-      await fetch(
-        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCounrty",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: user.Email,
-            newCountry: pendingCountry.name,
-          }),
-        }
-      );
-
+      await markCountryVisited();
       setShowForm(false);
-      setPendingCountry(null);
-      setSelected(null);
     } catch (err) {
       console.error("Failed to save trip:", err);
       alert("Could not save trip. Please try again.");
     }
   };
 
+  const handleAddBusiness = async (businessData) => {
+
+    try {
+      const response = await fetch(
+        "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddBusinessToCountry",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            countryName: pendingCountry.name,
+            business: businessData,
+          }),
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message);
+
+      await markCountryVisited();
+      setShowBusinessForm(false);
+    } catch (err) {
+      console.error("Failed to save business:", err);
+      alert("Could not save business. Please try again.");
+    }
+  };
+
+  const markCountryVisited = async () => {
+    setVisitedCountries((prev) => [...prev, pendingCountry.name]);
+    await fetch(
+      "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCounrty",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.Email,
+          newCountry: pendingCountry.name,
+        }),
+      }
+    );
+    setPendingCountry(null);
+    setSelected(null);
+  };
+
   const handleCancel = () => {
     setShowForm(false);
+    setShowBusinessForm(false);
     setPendingCountry(null);
   };
 
@@ -104,9 +126,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
 
   if (!user?.Email) {
     return (
-      <div
-        style={{ textAlign: "center", paddingTop: "40px", fontSize: "18px" }}
-      >
+      <div style={{ textAlign: "center", paddingTop: "40px" }}>
         Loading user data...
       </div>
     );
@@ -114,13 +134,12 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
 
   return (
     <div style={{ position: "relative" }}>
-      <ComposableMap projection="geoMercator" ref={mapRef}>
+      <ComposableMap projection="geoMercator">
         <Geographies geography={geoData}>
           {({ geographies }) =>
             geographies.map((geo) => {
               const code = geo.properties.name;
               const isVisited = visitedCountries.includes(code);
-
               return (
                 <Geography
                   key={geo.rsmKey}
@@ -147,12 +166,13 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
           }
         </Geographies>
       </ComposableMap>
-      {selected && selected.coordinates && (
+
+      {selected && selected.screenPosition && (
         <div
           style={{
             position: "absolute",
-            left: `${selected.screenPosition?.[0] ?? 0}px`,
-            top: `${selected.screenPosition?.[1] ?? 0}px`,
+            left: `${selected.screenPosition[0]}px`,
+            top: `${selected.screenPosition[1]}px`,
             transform: "translate(-50%, -100%)",
             background: "white",
             border: "1px solid #333",
@@ -168,16 +188,11 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
             <strong>{selected.geo.properties.name}</strong>
             <span
               onClick={() => setSelected(null)}
-              style={{
-                cursor: "pointer",
-                color: "red",
-                fontWeight: "bold",
-              }}
+              style={{ cursor: "pointer", color: "red", fontWeight: "bold" }}
             >
               ×
             </span>
           </div>
-
           {!visitedCountries.includes(selected.geo.properties.name) ? (
             <button
               onClick={promptTripForm}
@@ -185,23 +200,20 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
                 marginTop: "6px",
                 fontSize: "11px",
                 padding: "4px 6px",
-                background: "#4CAF50",
+                background:
+                  user.userType === "business" ? "#ff9800" : "#4CAF50",
                 color: "white",
                 border: "none",
                 borderRadius: "3px",
                 cursor: "pointer",
               }}
             >
-              Mark as Visited
+              {user.userType === "business"
+                ? "Add Business"
+                : "Mark as Visited"}
             </button>
           ) : (
-            <p
-              style={{
-                color: "green",
-                fontSize: "11px",
-                marginTop: "6px",
-              }}
-            >
+            <p style={{ color: "green", fontSize: "11px", marginTop: "6px" }}>
               Already visited
             </p>
           )}
@@ -255,6 +267,43 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
             <AddTripForm
               initialData={null}
               onSubmit={handleAddTrip}
+              onCancel={handleCancel}
+            />
+          </div>
+        </div>
+      )}
+
+      {showBusinessForm && pendingCountry && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "8px",
+              padding: "2rem",
+              maxWidth: "700px",
+              width: "90%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            <h1 style={{ marginBottom: "1rem", textAlign: "center" }}>
+              {pendingCountry.name}
+            </h1>
+            <AddBusinessForm
+              onSubmit={handleAddBusiness}
               onCancel={handleCancel}
             />
           </div>

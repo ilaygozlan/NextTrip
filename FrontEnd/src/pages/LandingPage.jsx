@@ -211,23 +211,6 @@ function LandingPage() {
         <CTASubtitle>
           Join our community of travelers and start exploring the world today.
         </CTASubtitle>
-        <CTAGrid>
-          <CTACard>
-            <CTACardTitle>For Travelers</CTACardTitle>
-            <CTACardDescription>
-              Discover new destinations, read reviews, and plan your next adventure.
-            </CTACardDescription>
-            <Button onClick={()=>{Login()}} className="primary">Sign Up as Traveler</Button>
-          </CTACard>
-
-          <CTACard>
-            <CTACardTitle>For Businesses</CTACardTitle>
-            <CTACardDescription>
-              List your business, reach travelers, and grow your customer base.
-            </CTACardDescription>
-            <Button onClick={()=>{Login()}} className="primary">Register Business</Button>
-          </CTACard>
-        </CTAGrid>
       </CTA>
     </Container>
   );
