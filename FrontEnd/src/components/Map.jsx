@@ -120,6 +120,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   };
 
   const markCountryVisited = async () => {
+    
     setVisitedCountries((prev) => [...prev, pendingCountry.name]);
 
     await fetch(
@@ -155,9 +156,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
       </div>
     );
   }
-  useEffect(() => {
-    console.log("Visited Countries:", visitedCountries);
-  }, [visitedCountries]);
+
 
   return (
     <div style={{ position: "relative" }}>

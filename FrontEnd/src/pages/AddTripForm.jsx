@@ -207,28 +207,6 @@ const AddTripForm = ({ onSubmit, initialData = null, onCancel }) => {
             </FormGroup>
           )}
 
-          {!initialData && (
-            <FormGroup>
-              <Label>Country</Label>
-              <Input
-                name="country"
-                value={formData.country}
-                onChange={handleCountryChange}
-                autoComplete="off"
-                placeholder="Start typing a country..."
-              />
-              {suggestions.length > 0 && (
-                <SuggestionList>
-                  {suggestions.map((s, idx) => (
-                    <SuggestionItem key={idx} onClick={() => selectSuggestion(s)}>
-                      {s}
-                    </SuggestionItem>
-                  ))}
-                </SuggestionList>
-              )}
-            </FormGroup>
-          )}
-
           <FormGroup>
             <Label>Start Date</Label>
             <Input
