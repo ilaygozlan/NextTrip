@@ -83,7 +83,10 @@ function Navbar(props) {
           {user.userType === "business" ? (
             <NavLink to="/my-businesses">My Businesses</NavLink>
           ) : (
+            <>
             <NavLink to="/my-trips">My Trips</NavLink>
+            <NavLink to="/trip-recommendation">AI - Trip Generator</NavLink>
+            </>
           )}
           <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
         </NavLinks>

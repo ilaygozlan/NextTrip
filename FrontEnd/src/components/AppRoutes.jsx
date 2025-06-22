@@ -6,6 +6,7 @@ import MyTrips from "../pages/MyTrips";
 import MyBusinesses from "../pages/MyBusinesses";
 import CountryPage from "../pages/CountryPage";
 import LandingPage from "../pages/LandingPage";
+import TripRecommendationPage from '../pages/TripReccomendation';
 import Signup from "../pages/Signup";
 import config from "../config";
 import { useUser } from "../contexts/UserContext";
@@ -221,6 +222,7 @@ const AppRoutes = () => {
                   }
                 />
                 <Route path="/my-trips" element={<MyTrips />} />
+                <Route path="/trip-recommendation" element={<TripRecommendationPage/>}/>
                 <Route path="/my-businesses" element={<MyBusinesses  setVisitedCountries={setVisitedCountries}/>} />
                 <Route path="/country/:countryName" element={<CountryPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
