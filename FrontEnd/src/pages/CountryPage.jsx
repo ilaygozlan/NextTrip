@@ -251,11 +251,12 @@ const BusinessCard = styled.div`
 `;
 
 const BusinessImage = styled.div`
-  height: 200px;
-  background: #f0f0f0;
-  background-image: ${(props) =>
-    props.image ? `url(${props.image})` : "none"};
-  background-size: cover;
+  height: 180px;
+  border-radius: 12px;
+  margin: 10px;
+  background-image: url(${(props) => props.image});
+  background-size: contain;  
+  background-repeat: no-repeat;
   background-position: center;
 `;
 

@@ -10,6 +10,7 @@ import Signup from "../pages/Signup";
 import config from "../config";
 import { useUser } from "../contexts/UserContext";
 import styled, { keyframes } from "styled-components";
+import MapLoading from "./Loader";
 
 const Overlay = styled.div`
   position: fixed;
@@ -189,7 +190,7 @@ const AppRoutes = () => {
   if (isAuthenticated && !user?.Email) {
     return (
       <Overlay>
-        <Spinner />
+        <MapLoading />
       </Overlay>
     );
   }

@@ -27,7 +27,8 @@ const BusinessImage = styled.div`
   border-radius: 12px;
   margin: 10px;
   background-image: url(${(props) => props.image});
-  background-size: cover;
+  background-size: contain;   
+  background-repeat: no-repeat;
   background-position: center;
 `;
 
