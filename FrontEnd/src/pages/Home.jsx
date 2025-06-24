@@ -1,12 +1,21 @@
-import React, { useEffect } from 'react';
-import styled from 'styled-components';
-import MapComponent from '../components/Map';
-import { useUser } from '../contexts/UserContext';
+import React, { useEffect } from "react";
+import styled from "styled-components";
+import MapComponent from "../components/Map";
+import { useUser } from "../contexts/UserContext";
 
-const Hero = styled.div`
+
+const HeroTraveler = styled.div`
   text-align: center;
   padding: 4rem 2rem;
-  background: linear-gradient(135deg, #3498db, #2c3e50);
+  background: linear-gradient(135deg, #43cea2, #3498db);
+  color: white;
+  margin-bottom: 2rem;
+`;
+
+const HeroBusiness = styled.div`
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f39c12, #d35400);
   color: white;
   margin-bottom: 2rem;
 `;
@@ -36,17 +45,35 @@ const MapContainer = styled.div`
 function Home(props) {
   const { user } = useUser();
 
-  
   return (
     <>
-      <Hero>
-        <Title>Welcome to NextTrip{user?.name ? `, ${user.name}` : ''}!</Title>
-        <Subtitle>
-          Discover the world, one country at a time. Click on countries you've visited to mark them and start planning your next adventure.
-        </Subtitle>
-      </Hero>
+      {user?.userType === "business" ? (
+        <HeroBusiness>
+          <Title>
+            Welcome to NextTrip{user?.name ? `, ${user.name}` : ""}!
+          </Title>
+          <Subtitle>
+            Promote your business to global travelers. Add your services, track
+            engagement, and reach new customers around the world.
+          </Subtitle>
+        </HeroBusiness>
+      ) : (
+        <HeroTraveler>
+          <Title>
+            Welcome to NextTrip{user?.name ? `, ${user.name}` : ""}!
+          </Title>
+          <Subtitle>
+            Discover the world, one country at a time. Click on countries you've
+            visited to mark them and start planning your next adventure.
+          </Subtitle>
+        </HeroTraveler>
+      )}
+
       <MapContainer>
-        <MapComponent visitedCountries={user.visitedCountries} setVisitedCountries={props.setVisitedCountries}/>
+        <MapComponent
+          visitedCountries={user.visitedCountries}
+          setVisitedCountries={props.setVisitedCountries}
+        />
       </MapContainer>
     </>
   );

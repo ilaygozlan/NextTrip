@@ -49,7 +49,7 @@ const LoadingText = styled.p`
   color: #555;
 `;
 
-const MapLoading = () => (
+const MapLoading = ({massage}) => (
   <LoaderWrapper>
     <GlobeWrapper>
       <RotatingGlobe>
@@ -59,7 +59,7 @@ const MapLoading = () => (
         <FaMapMarkerAlt />
       </Marker>
     </GlobeWrapper>
-    <LoadingText>Exploring new destinations for you...</LoadingText>
+    <LoadingText>{massage}</LoadingText>
   </LoaderWrapper>
 );
 

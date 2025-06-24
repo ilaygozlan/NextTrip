@@ -34,6 +34,7 @@ const ModalContainer = styled.div`
 const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   const [selected, setSelected] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [markedCountries, setMarkedCountries] = useState(visitedCountries || []);
   const [showBusinessForm, setShowBusinessForm] = useState(false);
   const [pendingCountry, setPendingCountry] = useState(null);
   const { user } = useUser();
@@ -57,7 +58,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
     const countryName = selected.geo.properties.name;
     const countryId = selected.geo.id;
 
-    if (!(visitedCountries || []).includes(countryName)) {
+    if (!(markedCountries || []).includes(countryName)) {
       setPendingCountry({ name: countryName, id: countryId });
       if (user.userType === "business") {
         setShowBusinessForm(true);
@@ -119,9 +120,10 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
     }
   };
 
+
   const markCountryVisited = async () => {
-    
     setVisitedCountries((prev) => [...prev, pendingCountry.name]);
+    setMarkedCountries((prev) => [...prev, pendingCountry.name]);
 
     await fetch(
       "https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AddUserCounrty",
@@ -157,7 +159,6 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
     );
   }
 
-
   return (
     <div style={{ position: "relative" }}>
       <ComposableMap projection="geoMercator">
@@ -165,7 +166,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
           {({ geographies }) =>
             geographies.map((geo) => {
               const code = geo.properties.name;
-              const isVisited = (visitedCountries || []).includes(code);
+              const isVisited = (markedCountries || []).includes(code);
 
               const visitedColor =
                 user.userType === "business" ? "#ff9800" : "#66bb6a";
@@ -230,7 +231,7 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
             </span>
           </div>
 
-          {!(visitedCountries || []).includes(selected.geo.properties.name) ? (
+          {!(markedCountries || []).includes(selected.geo.properties.name) ? (
             <button
               onClick={promptTripForm}
               style={{

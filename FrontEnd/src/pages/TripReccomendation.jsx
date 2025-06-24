@@ -67,6 +67,7 @@ const TripRecommendationPage = ({ userEmail }) => {
       );
       const data = await response.json();
       setRecommendations(data || []);
+      console.log(data);
     } catch (error) {
       console.error("Failed to fetch recommendations:", error);
     } finally {

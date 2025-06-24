@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import AddTripForm from "./AddTripForm";
 import { useUser } from "../contexts/UserContext";
+import MapLoading from "../components/Loader";
 
 const Container = styled.div`
   max-width: 1200px;
@@ -254,6 +255,9 @@ function MyTrips() {
       alert("Failed to delete trip.");
     }
   };
+
+  if(trips.length == 0)
+    return( <MapLoading massage={"Loading your trips..."}/>);
 
   return (
     <Container>

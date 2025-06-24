@@ -231,6 +231,9 @@ function MyBusinesses({ setVisitedCountries }) {
     }
   };
 
+    if(businesses.length == 0)
+    return( <MapLoading massage={"Loading your businesses..."}/>);
+
   return (
     <div>
       <h1 style={{ textAlign: "center", margin: "2rem 0" }}>My Businesses</h1>

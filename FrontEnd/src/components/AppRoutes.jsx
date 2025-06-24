@@ -191,7 +191,7 @@ const AppRoutes = () => {
   if (isAuthenticated && !user?.Email) {
     return (
       <Overlay>
-        <MapLoading />
+        <MapLoading massage={""}/>
       </Overlay>
     );
   }
