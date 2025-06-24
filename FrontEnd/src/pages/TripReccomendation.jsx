@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { useUser } from "../contexts/UserContext";
 
 const Container = styled.div`
   padding: 2rem;
@@ -11,6 +12,7 @@ const Container = styled.div`
 const Button = styled.button`
   padding: 1rem 2rem;
   background: linear-gradient(135deg, #ff5722, #ff9800);
+  margin: 35px;
   color: white;
   border: none;
   border-radius: 2rem;
@@ -53,17 +55,18 @@ const SaveButton = styled.button`
   cursor: pointer;
 `;
 
-const TripRecommendationPage = ({ userEmail }) => {
+const TripRecommendationPage = () => {
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
   const [saved, setSaved] = useState(false);
+  const { user } = useUser();
 
   const generateTrip = async () => {
     setLoading(true);
     setSaved(false);
     try {
       const response = await fetch(
-        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/RecommendTrip?email=${userEmail}`
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/RecommendTrip?email=${user.Email}`
       );
       const data = await response.json();
       setRecommendations(data || []);
