@@ -58,6 +58,7 @@ const SaveButton = styled.button`
 const TripRecommendationPage = () => {
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [savedTrips, setSavedTrips] = useState([]);
   const [saved, setSaved] = useState(false);
   const { user } = useUser();
 
@@ -78,7 +79,7 @@ const TripRecommendationPage = () => {
     }
   };
 
-  const saveTrip = async () => {
+  const saveTrip = async (trip) => {
     try {
       await fetch(
         `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/SaveRecommendedTrip`,
@@ -86,13 +87,13 @@ const TripRecommendationPage = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: userEmail,
-            savedTrip: recommendations,
+            email: user.Email,
+            savedTrip: [trip], // send only this one trip
             timestamp: Date.now(),
           }),
         }
       );
-      setSaved(true);
+      setSavedTrips((prev) => [...prev, trip.country]); // mark as saved
     } catch (error) {
       console.error("Error saving trip:", error);
     }
@@ -116,14 +117,25 @@ const TripRecommendationPage = () => {
               <span>⭐ {biz.score}</span>
             </BusinessCard>
           ))}
+
+          {!savedTrips.includes(rec.country) ? (
+            <SaveButton onClick={() => saveTrip(rec)}>
+              Save This Trip
+            </SaveButton>
+          ) : (
+            <p style={{ color: "#4caf50", marginTop: "1rem" }}>
+              Trip to {rec.country} saved ✔️
+            </p>
+          )}
         </TripCard>
       ))}
 
-      {recommendations.length > 0 && !saved && (
-        <SaveButton onClick={saveTrip}>Save This Trip</SaveButton>
-      )}
 
-      {saved && <p style={{ color: "#4caf50", marginTop: "1rem" }}>Trip saved successfully! ✔️</p>}
+      {saved && (
+        <p style={{ color: "#4caf50", marginTop: "1rem" }}>
+          Trip saved successfully! ✔️
+        </p>
+      )}
     </Container>
   );
 };

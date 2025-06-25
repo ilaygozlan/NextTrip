@@ -10,20 +10,25 @@ const Container = styled.div`
   padding: 2rem;
 `;
 
-const Header = styled.div`
+const SectionHeader = styled.div`
   text-align: center;
-  margin-bottom: 3rem;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #43cea2, #3498db);
+  color: white;
+  margin-bottom: 2rem;
+  border-radius: 1rem;
 `;
+const Header = SectionHeader;
 
 const Title = styled.h2`
   font-size: 2.5rem;
-  color: #2c3e50;
+  color:rgb(255, 255, 255);
   margin-bottom: 1rem;
 `;
 
 const Subtitle = styled.p`
   font-size: 1.25rem;
-  color: #7f8c8d;
+  color:rgb(210, 212, 212);
   max-width: 600px;
   margin: 0 auto;
 `;
@@ -124,9 +129,32 @@ const ModalContent = styled.div`
 
 function MyTrips() {
   const [showForm, setShowForm] = useState(false);
+  const [savedTrips, setSavedTrips] = useState([]);
   const [trips, setTrips] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const { user } = useUser();
+
+  const fetchSavedTrips = async (email) => {
+    try {
+      const res = await fetch(
+        `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/getSavedTrips?email=${email}`
+      );
+      const data = await res.json();
+      setSavedTrips(data);
+      if (!res.ok) {
+        console.error("Failed to fetch saved trips:", data);
+      }
+    } catch (err) {
+      console.error("Error fetching saved trips:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.Email) {
+      fetchUserTrips(user.Email);
+      fetchSavedTrips(user.Email);
+    }
+  }, [user]);
 
   const fetchUserTrips = async (email) => {
     try {
@@ -229,7 +257,9 @@ function MyTrips() {
   };
 
   const handleDeleteTrip = async (index) => {
-    const confirmed = window.confirm("Are you sure you want to delete this trip?");
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this trip?"
+    );
     if (!confirmed) return;
 
     const tripId = trips[index].tripId;
@@ -256,8 +286,8 @@ function MyTrips() {
     }
   };
 
-  if(trips.length == 0)
-    return( <MapLoading massage={"Loading your trips..."}/>);
+  if (trips.length == 0)
+    return <MapLoading massage={"Loading your trips..."} />;
 
   return (
     <Container>
@@ -269,15 +299,35 @@ function MyTrips() {
       <TripGrid>
         {trips.map((trip, index) => (
           <TripCard key={index}>
-            <DeleteButton onClick={() => handleDeleteTrip(index)}>×</DeleteButton>
+            <DeleteButton onClick={() => handleDeleteTrip(index)}>
+              ×
+            </DeleteButton>
             <CountryName>{trip.country}</CountryName>
             <TripDetails>
-              <div><strong>Travel Type:</strong> {trip.travelType}</div>
-              <div><strong>Dates:</strong> {trip.startDate} - {trip.endDate}</div>
-              <div><strong>Rating:</strong> <Rating>★ {trip.rating}/5</Rating></div>
-              {trip.highlight && <div><strong>Highlight:</strong> {trip.highlight}</div>}
-              {trip.review && <div><strong>Review:</strong> {trip.review}</div>}
-              {trip.tip && <div><strong>Tip:</strong> {trip.tip}</div>}
+              <div>
+                <strong>Travel Type:</strong> {trip.travelType}
+              </div>
+              <div>
+                <strong>Dates:</strong> {trip.startDate} - {trip.endDate}
+              </div>
+              <div>
+                <strong>Rating:</strong> <Rating>★ {trip.rating}/5</Rating>
+              </div>
+              {trip.highlight && (
+                <div>
+                  <strong>Highlight:</strong> {trip.highlight}
+                </div>
+              )}
+              {trip.review && (
+                <div>
+                  <strong>Review:</strong> {trip.review}
+                </div>
+              )}
+              {trip.tip && (
+                <div>
+                  <strong>Tip:</strong> {trip.tip}
+                </div>
+              )}
             </TripDetails>
             <Button onClick={() => handleEditClick(index)}>Edit Trip ✏️</Button>
           </TripCard>
@@ -294,6 +344,39 @@ function MyTrips() {
             />
           </ModalContent>
         </ModalOverlay>
+      )}
+
+      {savedTrips.length > 0 && (
+        <>
+          <Header>
+            <Title>Saved Trips</Title>
+            <Subtitle>Trips you saved for inspiration or future plans</Subtitle>
+          </Header>
+          <TripGrid>
+            {savedTrips.map((trip, index) => (
+              <TripCard key={`saved-${index}`}>
+                <CountryName>{trip.country}</CountryName>
+                <TripDetails>
+                  <div>
+                    <strong>Recommendation Score:</strong> {trip.score}
+                  </div>
+                  {trip.topBusinesses && (
+                    <div>
+                      <strong>Top Businesses:</strong>
+                      <ul>
+                        {trip.topBusinesses.map((biz, idx) => (
+                          <li key={idx}>
+                            {biz.name} - ⭐ {biz.score}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </TripDetails>
+              </TripCard>
+            ))}
+          </TripGrid>
+        </>
       )}
     </Container>
   );

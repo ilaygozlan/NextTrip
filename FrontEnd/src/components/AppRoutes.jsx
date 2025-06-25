@@ -168,7 +168,7 @@ const AppRoutes = () => {
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
                 const userData = await response.json();
-                console.log("User from Lambda:", userData);
+             
                 setUser(userData);
               } catch (err) {
                 console.error("Error fetching user details from Lambda:", err);
