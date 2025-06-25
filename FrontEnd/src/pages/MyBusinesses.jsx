@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useUser } from "../contexts/UserContext";
 import AddBusinessForm from "../components/AddBusinessForm";
+import MapLoading from "../components/Loader";
+import { toast } from "react-toastify";
 
 const BusinessGrid = styled.div`
   display: flex;
@@ -164,6 +166,11 @@ function MyBusinesses({ setVisitedCountries }) {
       );
 
       if (!res.ok) throw new Error("Failed to delete");
+          toast.success("Business deleted successfully!", {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: false,
+    });
       const updated = businesses.filter((_, i) => i !== index);
       setBusinesses(updated);
       setVisitedCountries((prev) =>
@@ -171,6 +178,11 @@ function MyBusinesses({ setVisitedCountries }) {
       );
     } catch (err) {
       console.error("Error deleting business:", err);
+          toast.error("Failed to delete business.", {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: false,
+    });
     }
   };
 
@@ -193,8 +205,19 @@ function MyBusinesses({ setVisitedCountries }) {
       copy[index] = updatedBusiness;
       setBusinesses(copy);
       setEditIndex(null);
+      
+    toast.success("Business updated successfully!", {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: false,
+    });
     } catch (err) {
       console.error("Error updating business:", err);
+         toast.error("Failed to update business.", {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: false,
+    });
     }
   };
 

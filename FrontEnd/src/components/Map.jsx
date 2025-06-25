@@ -7,6 +7,7 @@ import { useUser } from "../contexts/UserContext";
 import AddTripForm from "../pages/AddTripForm";
 import AddBusinessForm from "../components/AddBusinessForm";
 import styled from "styled-components";
+import { toast } from "react-toastify";
 
 const ModalBackground = styled.div`
   position: fixed;
@@ -34,7 +35,9 @@ const ModalContainer = styled.div`
 const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   const [selected, setSelected] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [markedCountries, setMarkedCountries] = useState(visitedCountries || []);
+  const [markedCountries, setMarkedCountries] = useState(
+    visitedCountries || []
+  );
   const [showBusinessForm, setShowBusinessForm] = useState(false);
   const [pendingCountry, setPendingCountry] = useState(null);
   const { user } = useUser();
@@ -86,13 +89,25 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
         }
       );
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message);
+      if (!response.ok) {
+
+        throw new Error(result.message);
+      }
 
       await markCountryVisited();
       setShowForm(false);
+      toast.success("Trip saved!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
     } catch (err) {
       console.error("Failed to save trip:", err);
-      alert("Could not save trip. Please try again.");
+      toast.error("Failed to save trip. Please try again.", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
     }
   };
 
@@ -110,16 +125,26 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
         }
       );
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message);
+      if (!response.ok) {
+        throw new Error(result.message);
+      }
+      toast.success("Business saved!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
 
       await markCountryVisited();
       setShowBusinessForm(false);
     } catch (err) {
       console.error("Failed to save business:", err);
-      alert("Could not save business. Please try again.");
+      toast.error("Failed to save business. Please try again.", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
     }
   };
-
 
   const markCountryVisited = async () => {
     setVisitedCountries((prev) => [...prev, pendingCountry.name]);

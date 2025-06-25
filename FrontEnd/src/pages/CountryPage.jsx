@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useUser } from "../contexts/UserContext";
+import { toast } from "react-toastify";
 
 const Container = styled.div`
   max-width: 1200px;
@@ -255,7 +256,7 @@ const BusinessImage = styled.div`
   border-radius: 12px;
   margin: 10px;
   background-image: url(${(props) => props.image});
-  background-size: contain;  
+  background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 `;
@@ -393,7 +394,11 @@ const CountryPage = () => {
 
         if (!response.ok) {
           console.error("Failed to submit review:", data);
-          alert("Error: " + (data.message || "Failed to submit review"));
+          toast.error("Error: " + (data.message || "Failed to submit review"), {
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+          });
           return;
         }
 
@@ -402,7 +407,11 @@ const CountryPage = () => {
         setFormData({ review: "", tips: "" });
         setRating(0);
 
-        alert("Review submitted successfully!");
+        toast.success("Review submitted successfully!", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+        });
       } catch (err) {
         console.error("Error submitting review:", err);
         alert("Error submitting review. Please try again.");
@@ -442,7 +451,6 @@ const CountryPage = () => {
     currency: "Euro (€)",
     language: "French",
   };
-
 
   const getCountryBusinesses = async (countryName) => {
     try {
@@ -494,10 +502,14 @@ const CountryPage = () => {
         {
           method,
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userEmail: user.Email, businessId: businessId, countryName: countryName }),
+          body: JSON.stringify({
+            userEmail: user.Email,
+            businessId: businessId,
+            countryName: countryName,
+          }),
         }
       );
-      console.log("Parsed data:",  user.Email , businessId, countryName );
+      console.log("Parsed data:", user.Email, businessId, countryName);
 
       if (res.ok) {
         setLikedBusinesses((prev) =>
@@ -505,9 +517,24 @@ const CountryPage = () => {
             ? prev.filter((id) => id !== businessId)
             : [...prev, businessId]
         );
+        toast.success(
+          isLiked
+            ? "Like removed successfully!"
+            : "Business liked successfully!",
+          {
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+          }
+        );
       }
     } catch (err) {
       console.error("Like toggle error:", err);
+      toast.error("Failed to update like. Please try again.", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
     }
   };
 

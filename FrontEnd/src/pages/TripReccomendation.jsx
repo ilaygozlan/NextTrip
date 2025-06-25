@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useUser } from "../contexts/UserContext";
+import { toast } from "react-toastify";
 
 const Container = styled.div`
   padding: 2rem;
@@ -93,9 +94,19 @@ const TripRecommendationPage = () => {
           }),
         }
       );
+       toast.success("Trip saved successfully!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
       setSavedTrips((prev) => [...prev, trip.country]); // mark as saved
     } catch (error) {
       console.error("Error saving trip:", error);
+       toast.error("Failed to save the trip. Please try again.", {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: false,
+    });
     }
   };
 

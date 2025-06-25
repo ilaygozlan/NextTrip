@@ -3,6 +3,7 @@ import styled from "styled-components";
 import AddTripForm from "./AddTripForm";
 import { useUser } from "../contexts/UserContext";
 import MapLoading from "../components/Loader";
+import { toast } from "react-toastify";
 
 const Container = styled.div`
   max-width: 1200px;
@@ -22,13 +23,13 @@ const Header = SectionHeader;
 
 const Title = styled.h2`
   font-size: 2.5rem;
-  color:rgb(255, 255, 255);
+  color: rgb(255, 255, 255);
   margin-bottom: 1rem;
 `;
 
 const Subtitle = styled.p`
   font-size: 1.25rem;
-  color:rgb(210, 212, 212);
+  color: rgb(230, 235, 235);
   max-width: 600px;
   margin: 0 auto;
 `;
@@ -245,14 +246,22 @@ function MyTrips() {
       );
 
       if (!res.ok) throw new Error("Update failed");
-
+      toast.success("Trip updated successfully!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
       const newTrips = [...trips];
       newTrips[index] = fullTrip;
       setTrips(newTrips);
       setEditIndex(null);
     } catch (err) {
       console.error("Error updating trip:", err);
-      alert("Failed to update trip.");
+      toast.error("Failed to update trip.", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
     }
   };
 
@@ -277,12 +286,20 @@ function MyTrips() {
       );
 
       if (!res.ok) throw new Error("Delete failed");
-
+      toast.success("Trip deleted successfully!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
       const newTrips = trips.filter((_, i) => i !== index);
       setTrips(newTrips);
     } catch (err) {
       console.error("Error deleting trip:", err);
-      alert("Failed to delete trip.");
+      toast.error("Failed to delete trip.", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
     }
   };
 

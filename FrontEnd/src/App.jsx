@@ -5,6 +5,8 @@ import styled from "styled-components";
 import Navbar from "./components/Navbar";
 import AppRoutes from "../src/components/AppRoutes";
 import { UserProvider } from "./contexts/UserContext";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -43,6 +45,7 @@ function App() {
       <UserProvider>
         <GlobalStyle />
         <AppRoutes />
+          <ToastContainer />
       </UserProvider>
     </Router>
   );
