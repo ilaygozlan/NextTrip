@@ -79,13 +79,16 @@ function Navbar(props) {
       <NavContainer>
         <Logo to="/">NextTrip</Logo>
         <NavLinks>
-          <NavLink to="/">Home</NavLink>
-          {user.userType === "business" ? (
+           <NavLink to="/">Home</NavLink>
+          {user.userType === "admin" ? (
+            
+            <NavLink to="/admin">Admin Page</NavLink>
+          ) : user.userType === "business" ? (
             <NavLink to="/my-businesses">My Businesses</NavLink>
           ) : (
             <>
-            <NavLink to="/my-trips">My Trips</NavLink>
-            <NavLink to="/trip-recommendation">AI - Trip Generator</NavLink>
+              <NavLink to="/my-trips">My Trips</NavLink>
+              <NavLink to="/trip-recommendation">AI - Trip Generator</NavLink>
             </>
           )}
           <LogoutButton onClick={handleLogout}>Logout</LogoutButton>

@@ -35,6 +35,7 @@ const ModalContainer = styled.div`
 const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
   const [selected, setSelected] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [adminStats, setAdminStats] = useState(null);
   const [markedCountries, setMarkedCountries] = useState(
     visitedCountries || []
   );
@@ -47,13 +48,24 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
     .scale(160)
     .translate([900 / 2, 700 / 2]);
 
-  const handleClick = (geo) => {
-    if (selected?.geo?.id === geo.id) {
-      setSelected(null);
-    } else {
-      const centroid = geoCentroid(geo);
-      const projected = projection(centroid);
-      setSelected({ geo, coordinates: centroid, screenPosition: projected });
+  const handleClick = async (geo) => {
+    const centroid = geoCentroid(geo);
+    const projected = projection(centroid);
+    const selectedCountry = geo.properties.name;
+
+    setSelected({ geo, coordinates: centroid, screenPosition: projected });
+
+    if (user.userType === "admin") {
+      try {
+        const res = await fetch(
+          `https://6bmdup2xzi.execute-api.us-east-1.amazonaws.com/prod/AdminCountryStats?countryName=${selectedCountry}`
+        );
+        const stats = await res.json();
+        setAdminStats(stats);
+      } catch (err) {
+        console.error("Failed to fetch admin stats:", err);
+        setAdminStats(null);
+      }
     }
   };
 
@@ -90,7 +102,6 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
       );
       const result = await response.json();
       if (!response.ok) {
-
         throw new Error(result.message);
       }
 
@@ -256,6 +267,17 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
             </span>
           </div>
 
+          {user.userType === "admin" && adminStats && (
+            <div style={{ fontSize: "11px", marginTop: "6px" }}>
+              <p>
+                <strong>Businesses:</strong> {adminStats.businessCount}
+              </p>
+              <p>
+                <strong>Visitors:</strong> {adminStats.visitorCount}
+              </p>
+            </div>
+          )}
+          
           {!(markedCountries || []).includes(selected.geo.properties.name) ? (
             <button
               onClick={promptTripForm}

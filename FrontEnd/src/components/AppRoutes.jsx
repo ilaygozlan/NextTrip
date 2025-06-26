@@ -12,6 +12,7 @@ import config from "../config";
 import { useUser } from "../contexts/UserContext";
 import styled, { keyframes } from "styled-components";
 import MapLoading from "./Loader";
+import AdminPage from "../pages/AdminPage";
 
 const Overlay = styled.div`
   position: fixed;
@@ -94,7 +95,7 @@ const AppRoutes = () => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
           const userData = await response.json();
-          console.log("User from Lambda:", userData);
+          
           setUser(userData);
           setVisitedCountries(userData.visitedCountries || []);
         } catch (err) {
@@ -221,6 +222,7 @@ const AppRoutes = () => {
                     />
                   }
                 />
+                <Route path="/admin" element={<AdminPage />} />
                 <Route path="/my-trips" element={<MyTrips />} />
                 <Route path="/trip-recommendation" element={<TripRecommendationPage/>}/>
                 <Route path="/my-businesses" element={<MyBusinesses  setVisitedCountries={setVisitedCountries}/>} />
