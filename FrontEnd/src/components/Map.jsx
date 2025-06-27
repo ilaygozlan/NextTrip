@@ -277,48 +277,57 @@ const MapComponent = ({ visitedCountries, setVisitedCountries }) => {
               </p>
             </div>
           )}
-          
-          {!(markedCountries || []).includes(selected.geo.properties.name) ? (
-            <button
-              onClick={promptTripForm}
-              style={{
-                marginTop: "6px",
-                fontSize: "11px",
-                padding: "4px 6px",
-                background:
-                  user.userType === "business" ? "#ff9800" : "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "3px",
-                cursor: "pointer",
-              }}
-            >
-              {user.userType === "business"
-                ? "Add Business"
-                : "Mark as Visited"}
-            </button>
-          ) : (
-            <p style={{ color: "green", fontSize: "11px", marginTop: "6px" }}>
-              {user.userType === "business"
-                ? "Business already added"
-                : "Already visited"}
-            </p>
+
+          {user.userType !== "admin" && (
+            <>
+              {!(markedCountries || []).includes(
+                selected.geo.properties.name
+              ) ? (
+                <button
+                  onClick={promptTripForm}
+                  style={{
+                    marginTop: "6px",
+                    fontSize: "11px",
+                    padding: "4px 6px",
+                    background:
+                      user.userType === "business" ? "#ff9800" : "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {user.userType === "business"
+                    ? "Add Business"
+                    : "Mark as Visited"}
+                </button>
+              ) : (
+                <p
+                  style={{ color: "green", fontSize: "11px", marginTop: "6px" }}
+                >
+                  {user.userType === "business"
+                    ? "Business already added"
+                    : "Already visited"}
+                </p>
+              )}
+
+              <button
+                onClick={goToCountryPage}
+                style={{
+                  marginTop: "6px",
+                  fontSize: "11px",
+                  padding: "4px 6px",
+                  background: "#1976d2",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                }}
+              >
+                View Details
+              </button>
+            </>
           )}
-          <button
-            onClick={goToCountryPage}
-            style={{
-              marginTop: "6px",
-              fontSize: "11px",
-              padding: "4px 6px",
-              background: "#1976d2",
-              color: "white",
-              border: "none",
-              borderRadius: "3px",
-              cursor: "pointer",
-            }}
-          >
-            View Details
-          </button>
         </div>
       )}
 
